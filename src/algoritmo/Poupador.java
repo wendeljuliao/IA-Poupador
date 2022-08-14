@@ -1,18 +1,16 @@
 package algoritmo;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Random;
 
 public class Poupador extends ProgramaPoupador {
 	
-	final int NORTE = 1;
-	final int SUL = 2;
-	final int LESTE = 3;
-	final int OESTE = 4;
-	final int NORDESTE = new Random().nextBoolean() ? NORTE : LESTE;
-	final int NOROESTE = new Random().nextBoolean() ? NORTE : OESTE;
-	final int SUDESTE = new Random().nextBoolean() ? SUL : LESTE;
-	final int SUDOESTE = new Random().nextBoolean() ? SUL : OESTE;
+	int PARADO = 0, NORTE = 1, SUL = 2, LESTE = 3, OESTE = 4;
+	int NORDESTE = new Random().nextBoolean() ? NORTE : LESTE;
+	int NOROESTE = new Random().nextBoolean() ? NORTE : OESTE;
+	int SUDESTE = new Random().nextBoolean() ? SUL : LESTE;
+	int SUDOESTE = new Random().nextBoolean() ? SUL : OESTE;
 	
 	final int[] DIRECAO_NORTE = {2, 7};
 	final int[] DIRECAO_SUL = {16, 21};
@@ -28,15 +26,16 @@ public class Poupador extends ProgramaPoupador {
 	final int[] DISTANCIA_TRES = {1, 3, 5, 9, 14, 18, 20, 22};
 	final int[] DISTANCIA_QUATRO = {0, 4, 19, 23};
 	
-	boolean hasValue(ArrayList<Integer> arr, int value) {
-		for (int s : arr) {
-			if (s == value) {
-				return true;
-			}
-		}
-		return false;
+	int[] visao_agente;
+	int[] olfato_agente;
+	int[][] visitados = new int[31][31];
+	
+	void atualizarVariaveis() {
+		visao_agente = this.sensor.getVisaoIdentificacao();
+		olfato_agente = this.sensor.getAmbienteOlfatoPoupador();
 	}
 	
+
 	boolean inDirection(int[] arr, int value) {
 		for (int s : arr) {
 			if (s == value) {
@@ -46,116 +45,163 @@ public class Poupador extends ProgramaPoupador {
 		return false;
 	}
 	
-	private int move(int command) {
-		int[] visaoIdentificacao = this.sensor.getVisaoIdentificacao();
-		if (visaoIdentificacao[command] == 1 || visaoIdentificacao[command] == -2) {
-			return (int) (Math.random() * 5);
-		}
-		return command;
+	private int movimentoAleatorio(int[] opcoes) {
+		int random = new Random().nextInt(opcoes.length);
+		
+		return opcoes[random];
 	}
 	
-	private int moveForCoin() {
-		int[] visaoIdentificacao = this.sensor.getVisaoIdentificacao();
-		
-		ArrayList<Integer>positionCoins = new ArrayList<>();
-		
-		for (int i = 0; i < visaoIdentificacao.length; i++) {
-			if (visaoIdentificacao[i] == 4) {
-				positionCoins.add(i);
-			}
-		}
-		
-		if (positionCoins.size() <= 0) {
-			return (int) (Math.random() * 5);
-		}
-		
-		for (int i = 0; i < DISTANCIA_DOIS.length; i++) {
-			if (hasValue(positionCoins, DISTANCIA_DOIS[i])) {
-				if (inDirection(DIRECAO_NORTE, DISTANCIA_DOIS[i])) {
-					return move(NORTE);
-				} else if (inDirection(DIRECAO_SUL, DISTANCIA_DOIS[i])) {
-					return move(SUL);
-				} else if (inDirection(DIRECAO_LESTE, DISTANCIA_DOIS[i])) {
-					return move(LESTE);
-				} else if (inDirection(DIRECAO_OESTE, DISTANCIA_DOIS[i])) {
-					return move(OESTE);
-				} else if (inDirection(DIRECAO_NORDESTE, DISTANCIA_DOIS[i])) {
-					return move(NORDESTE);
-				} else if (inDirection(DIRECAO_NOROESTE, DISTANCIA_DOIS[i])) {
-					return move(NOROESTE);
-				} else if (inDirection(DIRECAO_SUDESTE, DISTANCIA_DOIS[i])) {
-					return move(SUDESTE);
-				} else if (inDirection(DIRECAO_SUDOESTE, DISTANCIA_DOIS[i])) {
-					return move(SUDOESTE);
-				}
-			}
-		}
-		
-		for (int i = 0; i < DISTANCIA_TRES.length; i++) {
-			if (hasValue(positionCoins, DISTANCIA_TRES[i])) {
-				if (inDirection(DIRECAO_NORTE, DISTANCIA_TRES[i])) {
-					return move(NORTE);
-				} else if (inDirection(DIRECAO_SUL, DISTANCIA_TRES[i])) {
-					return move(SUL);
-				} else if (inDirection(DIRECAO_LESTE, DISTANCIA_TRES[i])) {
-					return move(LESTE);
-				} else if (inDirection(DIRECAO_OESTE, DISTANCIA_TRES[i])) {
-					return move(OESTE);
-				} else if (inDirection(DIRECAO_NORDESTE, DISTANCIA_TRES[i])) {
-					return move(NORDESTE);
-				} else if (inDirection(DIRECAO_NOROESTE, DISTANCIA_TRES[i])) {
-					return move(NOROESTE);
-				} else if (inDirection(DIRECAO_SUDESTE, DISTANCIA_TRES[i])) {
-					return move(SUDESTE);
-				} else if (inDirection(DIRECAO_SUDOESTE, DISTANCIA_TRES[i])) {
-					return move(SUDOESTE);
-				}
-			}
-		}
-		
-		for (int i = 0; i < DISTANCIA_QUATRO.length; i++) {
-			if (hasValue(positionCoins, DISTANCIA_QUATRO[i])) {
-				if (inDirection(DIRECAO_NORTE, DISTANCIA_QUATRO[i])) {
-					return NORTE;
-				} else if (inDirection(DIRECAO_SUL, DISTANCIA_QUATRO[i])) {
-					return SUL;
-				} else if (inDirection(DIRECAO_LESTE, DISTANCIA_QUATRO[i])) {
-					return LESTE;
-				} else if (inDirection(DIRECAO_OESTE, DISTANCIA_QUATRO[i])) {
-					return OESTE;
-				} else if (inDirection(DIRECAO_NORDESTE, DISTANCIA_QUATRO[i])) {
-					return NORDESTE;
-				} else if (inDirection(DIRECAO_NOROESTE, DISTANCIA_QUATRO[i])) {
-					return NOROESTE;
-				} else if (inDirection(DIRECAO_SUDESTE, DISTANCIA_QUATRO[i])) {
-					return SUDESTE;
-				} else if (inDirection(DIRECAO_SUDOESTE, DISTANCIA_QUATRO[i])) {
-					return SUDOESTE;
-				}
-			}
-		}
-
-		return (int) (Math.random() * 5);
-	}	
-	
 	private int getCoin() {
-		int[] visaoIdentificacao = this.sensor.getVisaoIdentificacao();		
 		
-		if(visaoIdentificacao[7] == 4 ) { 
+		if(visao_agente[7] == 4 ) { 
 			return 1;
-		} else if(visaoIdentificacao[11] == 4) {
+		} else if(visao_agente[11] == 4) {
 			return 4;
-		} else if(visaoIdentificacao[12] == 4) {
+		} else if(visao_agente[12] == 4) {
 			return 3;
-		} else if(visaoIdentificacao[16] == 4) {
+		} else if(visao_agente[16] == 4) {
 			return 2;
 		}
 		
-		return moveForCoin();
+		return (int) (Math.random() * 5);
+	}
+	
+	private int seAventurar() {
+		int x = this.sensor.getPosicao().x;
+		int y = this.sensor.getPosicao().y;
+		this.visitados[x][y]++;
+		
+		int []direcoes = new int[4];
+		
+		// CIMA
+		if (this.visao_agente[7] == 0 || this.visao_agente[7] == 4) {
+			if (y == 0) {
+				direcoes[0] = -1;
+			} else {				
+				direcoes[0] = this.visitados[x][y - 1];
+			}
+		} else {
+			direcoes[0] = -1;
+		}
+		
+		// ESQUERDA
+		if (this.visao_agente[11] == 0 || this.visao_agente[11] == 4) {
+			if (x == 0) {
+				direcoes[3] = -1;
+			} else {
+				
+				direcoes[3] = this.visitados[x - 1][y];
+			}
+		} else {
+			direcoes[3] = -1;
+		}
+		
+		// DIREITA
+		if (this.visao_agente[12] == 0 || this.visao_agente[12] == 4) {
+			direcoes[2] = this.visitados[x + 1][y];
+		} else {
+			direcoes[2] = -1;
+		}
+		
+		// BAIXO
+		if (this.visao_agente[16] == 0 || this.visao_agente[16] == 4) {
+			direcoes[1] = this.visitados[x][y + 1];
+		} else {
+			direcoes[1] = -1;
+		}
+		
+		int menor = Integer.MAX_VALUE;
+		int indiceMenor = -1;
+		
+		for (int i = 0; i < direcoes.length; i++) {
+//			System.out.print(direcoes[i] +" ");
+			if (direcoes[i] < menor && direcoes[i] != -1) {
+				menor = direcoes[i];
+				indiceMenor = i;
+			}
+		}
+//		System.out.println();
+		
+		return indiceMenor + 1;
+		
+		//return getCoin();
+	}
+	
+	private int verificarLadrao(int[] arr) {
+		for (int i = 0; i < arr.length; i++) {
+			if (this.visao_agente[arr[i]] == 200 || this.visao_agente[arr[i]] == 210 || this.visao_agente[arr[i]] == 220 || this.visao_agente[arr[i]] == 230) {
+				System.out.println("Correr do ladrão");
+				if (inDirection(DIRECAO_NORTE, arr[i])) {
+					return SUL;
+				} else if (inDirection(DIRECAO_SUL, arr[i])) {
+					return NORTE;
+				} else if (inDirection(DIRECAO_LESTE, arr[i])) {
+					return OESTE;
+				} else if (inDirection(DIRECAO_OESTE, arr[i])) {
+					return LESTE;
+				} else if (inDirection(DIRECAO_NORDESTE, arr[i])) {
+					return movimentoAleatorio(new int[] {SUL, OESTE});
+				} else if (inDirection(DIRECAO_NOROESTE, arr[i])) {
+					return movimentoAleatorio(new int[] {NORTE, LESTE});
+				} else if (inDirection(DIRECAO_SUDESTE, arr[i])) {
+					return movimentoAleatorio(new int[] {NORTE, OESTE});
+				} else if (inDirection(DIRECAO_SUDOESTE, arr[i])) {
+					return movimentoAleatorio(new int[] {NORTE, LESTE});
+				}	
+			}
+		}
+		
+		return -1;
+	}
+	
+	private int fugirLadrao() {
+		
+		int verificar_distUm = verificarLadrao(DISTANCIA_UM);
+		
+		if (verificar_distUm != -1) {
+			return verificar_distUm;
+		}
+		
+		int verificar_distDois = verificarLadrao(DISTANCIA_DOIS);
+		
+		if (verificar_distDois != -1) {
+			return verificar_distDois;
+		}
+		
+		int verificar_distTres = verificarLadrao(DISTANCIA_TRES);
+		
+		if (verificar_distTres != -1) {
+			return verificar_distTres;
+		}
+		
+		int verificar_distQuatro = verificarLadrao(DISTANCIA_QUATRO);
+		
+		if (verificar_distQuatro != -1) {
+			return verificar_distQuatro;
+		}
+		
+		return -1;
+	}
+	
+	private int pensarJogada() {
+		int fugir = fugirLadrao();
+		
+		if (fugir != -1) {
+			return fugir;
+		}
+		
+		return seAventurar(); 
 	}
 		
 	@Override
-	public int acao() {		
-		return getCoin();
+	public int acao() {
+		atualizarVariaveis();
+		
+//		for (int i = 0; i < this.visao_agente.length; i++) {
+//			System.out.print(this.visao_agente[i] + " ");
+//		}
+//		System.out.println();
+		
+		return pensarJogada();
 	}
 }
