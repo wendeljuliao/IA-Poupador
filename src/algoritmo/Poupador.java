@@ -2,7 +2,10 @@ package algoritmo;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.PriorityQueue;
 import java.util.Random;
+
+import controle.Constantes;
 
 public class Poupador extends ProgramaPoupador {
 	
@@ -21,10 +24,14 @@ public class Poupador extends ProgramaPoupador {
 	final int[] DIRECAO_SUDESTE = {17, 18, 22, 23};
 	final int[] DIRECAO_SUDOESTE = {14, 15, 20, 19};
 	
-	final int[] DISTANCIA_UM = {7, 11, 12, 16};
+	final int[] DISTANCIA_UM = {7, 16, 12, 11};
 	final int[] DISTANCIA_DOIS = {2, 6, 8, 10, 13, 15, 17, 21};
 	final int[] DISTANCIA_TRES = {1, 3, 5, 9, 14, 18, 20, 22};
 	final int[] DISTANCIA_QUATRO = {0, 4, 19, 23};
+	
+	final int PAREDE = 1;
+	final int BANCO = 3;
+	final int MOEDA = 4;
 	
 	int[] visao_agente;
 	int[] olfato_agente;
@@ -53,7 +60,7 @@ public class Poupador extends ProgramaPoupador {
 	
 	private int getCoin() {
 		
-		if(visao_agente[7] == 4 ) { 
+		if(visao_agente[7] == 4) { 
 			return 1;
 		} else if(visao_agente[11] == 4) {
 			return 4;
@@ -111,18 +118,23 @@ public class Poupador extends ProgramaPoupador {
 		}
 		
 		int menor = Integer.MAX_VALUE;
-		int indiceMenor = -1;
+		ArrayList<Integer> indicesMenores = new ArrayList<Integer>();
 		
 		for (int i = 0; i < direcoes.length; i++) {
 //			System.out.print(direcoes[i] +" ");
 			if (direcoes[i] < menor && direcoes[i] != -1) {
 				menor = direcoes[i];
-				indiceMenor = i;
 			}
 		}
 //		System.out.println();
+		for (int i = 0; i < direcoes.length; i++) {
+			if (direcoes[i] == menor) {
+				indicesMenores.add(i);
+			}
+		}
+		int aleatorio = new Random().nextInt(indicesMenores.size());
 		
-		return indiceMenor + 1;
+		return indicesMenores.get(aleatorio) + 1;
 		
 		//return getCoin();
 	}
@@ -132,17 +144,17 @@ public class Poupador extends ProgramaPoupador {
 			if (this.visao_agente[arr[i]] == 200 || this.visao_agente[arr[i]] == 210 || this.visao_agente[arr[i]] == 220 || this.visao_agente[arr[i]] == 230) {
 				System.out.println("Correr do ladrão");
 				if (inDirection(DIRECAO_NORTE, arr[i])) {
-					return SUL;
+					return movimentoAleatorio(new int[] { SUL, LESTE, OESTE });
 				} else if (inDirection(DIRECAO_SUL, arr[i])) {
-					return NORTE;
+					return movimentoAleatorio(new int[] { NORTE, LESTE, OESTE });
 				} else if (inDirection(DIRECAO_LESTE, arr[i])) {
-					return OESTE;
+					return movimentoAleatorio(new int[] { OESTE, NORTE, SUL });
 				} else if (inDirection(DIRECAO_OESTE, arr[i])) {
-					return LESTE;
+					return movimentoAleatorio(new int[] { LESTE, NORTE, SUL });
 				} else if (inDirection(DIRECAO_NORDESTE, arr[i])) {
 					return movimentoAleatorio(new int[] {SUL, OESTE});
 				} else if (inDirection(DIRECAO_NOROESTE, arr[i])) {
-					return movimentoAleatorio(new int[] {NORTE, LESTE});
+					return movimentoAleatorio(new int[] {SUL, LESTE});
 				} else if (inDirection(DIRECAO_SUDESTE, arr[i])) {
 					return movimentoAleatorio(new int[] {NORTE, OESTE});
 				} else if (inDirection(DIRECAO_SUDOESTE, arr[i])) {
@@ -192,6 +204,45 @@ public class Poupador extends ProgramaPoupador {
 		
 		return seAventurar(); 
 	}
+	
+	private int encontrarBanco() {
+		int x = (int) this.sensor.getPosicao().x;
+		int y = (int) this.sensor.getPosicao().y;
+		
+		int xBanco = (int) Constantes.posicaoBanco.x;
+		int yBanco = (int) Constantes.posicaoBanco.y;
+		
+//		System.out.println("x: " + x + " | y: " + y);
+//		System.out.println("xBanco: " + xBanco + " | yBanco: " + yBanco);
+		
+		// Cima, Baixo, Direita, Esquerda
+		int[] distanciaManhattan = new int[] {(Math.abs(xBanco - x) + Math.abs(yBanco - (y - 1))),
+											  (Math.abs(xBanco - x) + Math.abs(yBanco - (y + 1))),
+											  (Math.abs(xBanco - (x + 1)) + Math.abs(yBanco - y)),
+											  (Math.abs(xBanco - (x - 1)) + Math.abs(yBanco - y))};
+		
+		int menorManhattan = Integer.MAX_VALUE;
+		ArrayList<Integer> indicesMenoresManhattan = new ArrayList<Integer>();
+		
+		for (int i = 0; i < distanciaManhattan.length; i++) {
+//			System.out.println(distanciaManhattan[i]);
+			if (distanciaManhattan[i] < menorManhattan && this.visao_agente[DISTANCIA_UM[i]] != 1 && this.visao_agente[DISTANCIA_UM[i]] != 5) {
+				menorManhattan = distanciaManhattan[i];		
+			}
+		}
+		
+		for (int i = 0; i < distanciaManhattan.length; i++) {
+			if (distanciaManhattan[i] == menorManhattan) {
+				indicesMenoresManhattan.add(i);
+			}
+		}
+		
+		int aleatorio = new Random().nextInt(indicesMenoresManhattan.size());
+		// System.out.println(indicesMenoresManhattan.get(aleatorio) + 1);
+		System.out.println(indicesMenoresManhattan.get(aleatorio) + 1);
+		return indicesMenoresManhattan.get(aleatorio) + 1;
+		
+	}
 		
 	@Override
 	public int acao() {
@@ -201,7 +252,7 @@ public class Poupador extends ProgramaPoupador {
 //			System.out.print(this.visao_agente[i] + " ");
 //		}
 //		System.out.println();
-		
+//		System.out.println(Constantes.posicaoBanco);
 		return pensarJogada();
 	}
 }
