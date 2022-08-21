@@ -2,12 +2,86 @@ package algoritmo;
 
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.PriorityQueue;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Random;
 
 import controle.Constantes;
 
 public class Poupador extends ProgramaPoupador {
+	Poupador() {
+		for (int i = 0; i < 30; i++) {
+			for (int j = 0; j < 30; j++) {
+				memoria[i][j] = -9;
+			}
+		} 
+    }
+	
+//	class Grafo {
+//		private HashMap<Coordenada, ArrayList<Coordenada>> grafo = new HashMap<>();
+//		
+//		public void addEdge(Coordenada origem, Coordenada destino) {
+//			if (!grafo.containsKey(origem)) {
+//				addVertex(origem);
+//			}
+//			
+//			if (!grafo.containsKey(destino)) {
+//				addVertex(destino);
+//			}
+//			
+//			if (!hasEdge(origem, destino)) {
+//				grafo.get(origem).add(destino);				
+//			}
+//			
+////			if (!hasEdge(destino, origem)) {
+////				grafo.get(destino).add(origem);				
+////			}
+//		}
+//		
+//		private boolean hasEdge(Coordenada origem, Coordenada destino) {
+//			if (grafo.get(origem).contains(destino)) {
+//				return true;
+//			}
+//			return false;
+//		}
+//		
+//		public void addVertex(Coordenada vertex) {
+//			grafo.put(vertex, new ArrayList<Coordenada>());
+//		}
+//	}
+	
+//	class Coordenada {
+//		private Point coordenada;
+//		private int[] vizinhos;
+//		
+//		public Coordenada(Point coordenada, int[] vizinhos) {
+//			this.coordenada = coordenada;
+//
+//			this.vizinhos = vizinhos;
+//		}
+//
+//		public Point getCoordenada() {
+//			return coordenada;
+//		}
+//
+//		public int[] getVizinhos() {
+//			return vizinhos;
+//		}
+//		
+//	}
+	
+	int[][] baseCoordenadaVisao = {
+			{-2, -2}, {-1, -2}, {0, -2}, {1, -2}, {2, -2},
+			{-2, -1}, {-1, -1}, {0, -1}, {1, -1}, {2, -1},
+			{-2, 0}, {-1, 0}, {1, 0}, {2, 0},
+			{-2, 1}, {-1, 1}, {0, 1}, {1, 1}, {2, 1},
+			{-2, 2}, {-1, 2}, {0, 2}, {1, 2}, {2, 2},
+			
+	};
+	
+	int[][] baseCoordenadaMovimentos = {
+			{0, 0}, {0, -1}, {0, 1}, {1, 0}, {-1, 0}
+	};
 	
 	int PARADO = 0, NORTE = 1, SUL = 2, LESTE = 3, OESTE = 4;
 	int NORDESTE = new Random().nextBoolean() ? NORTE : LESTE;
@@ -35,15 +109,25 @@ public class Poupador extends ProgramaPoupador {
 	
 	int[] visao_agente;
 	int[] olfato_agente;
-	int[][] visitados = new int[31][31];
+	int[][] visitados = new int[30][30];
+	int[][] memoria = new int[30][30];
+	ArrayList<Point> memoriaMoedas = new ArrayList<>(); 
+	
+	Point posicaoAtual;
+
+	
+//	Grafo grafoTeste = new Grafo();
+//	HashMap<Point, Coordenada> grafo = new HashMap<Point, Coordenada>();
 	
 	void atualizarVariaveis() {
+		posicaoAtual = this.sensor.getPosicao();
+		this.visitados[posicaoAtual.x][posicaoAtual.y]++;
 		visao_agente = this.sensor.getVisaoIdentificacao();
 		olfato_agente = this.sensor.getAmbienteOlfatoPoupador();
 	}
 	
 
-	boolean inDirection(int[] arr, int value) {
+	boolean contem(int[] arr, int value) {
 		for (int s : arr) {
 			if (s == value) {
 				return true;
@@ -56,6 +140,28 @@ public class Poupador extends ProgramaPoupador {
 		int random = new Random().nextInt(opcoes.length);
 		
 		return opcoes[random];
+	}
+	
+	private int irEmDirecao(int valor) {
+		if (contem(DIRECAO_NORTE, valor)) {
+			return NORTE;
+		} else if (contem(DIRECAO_SUL, valor)) {
+			return SUL;
+		} else if (contem(DIRECAO_LESTE, valor)) {
+			return LESTE;
+		} else if (contem(DIRECAO_OESTE, valor)) {
+			return OESTE;
+		} else if (contem(DIRECAO_NORDESTE, valor)) {
+			return movimentoAleatorio(new int[] { NORTE, LESTE });
+		} else if (contem(DIRECAO_NOROESTE, valor)) {
+			return movimentoAleatorio(new int[] { NORTE, OESTE });
+		} else if (contem(DIRECAO_SUDESTE, valor)) {
+			return movimentoAleatorio(new int[] { SUL, LESTE });
+		} else if (contem(DIRECAO_SUDOESTE, valor)) {
+			return movimentoAleatorio(new int[] { SUL, OESTE });
+		}
+		
+		return -1;
 	}
 	
 	private int getCoin() {
@@ -73,11 +179,51 @@ public class Poupador extends ProgramaPoupador {
 		return (int) (Math.random() * 5);
 	}
 	
-	private int seAventurar() {
-		int x = this.sensor.getPosicao().x;
-		int y = this.sensor.getPosicao().y;
-		this.visitados[x][y]++;
+//	void mapearMapa() {
+//		Coordenada coordenada = new Coordenada(posicaoAtual, this.visao_agente);
+//		
+////		grafoTeste.addEdge(new Coordenada(posicaoAtual, 0, this.visao_agente), new Coordenada(posicaoAtual, 0, this.visao_agente));
+//		
+//		grafo.put(this.sensor.getPosicao(), coordenada);
+//	}
+	
+	void memorizar() {
+		int x = this.posicaoAtual.x; 
+		int y = this.posicaoAtual.y;
 		
+		// Já que pisei nesse canto, removo a moeda se tiver aqui
+		memoriaMoedas.remove(this.posicaoAtual);
+		// Cantos que já "pisei!"
+		memoria[x][y] = 9;				
+				
+		for (int i = 0; i < visao_agente.length; i++) {
+			int xNovo = x + baseCoordenadaVisao[i][0];
+			int yNovo = y + baseCoordenadaVisao[i][1];
+			
+			
+			if (this.visao_agente[i] != -1 && this.visao_agente[i] != -2) {
+				Point pontoNovo = new Point (xNovo, yNovo);
+				
+				// Já pisei ? Se não pisei, coloque o que tem lá
+				if (memoria[xNovo][yNovo] != 9) {
+					memoria[xNovo][yNovo] = this.visao_agente[i];
+				}
+				
+				if (this.visao_agente[i] == 4 && !memoriaMoedas.contains(pontoNovo)) {
+					memoriaMoedas.add(pontoNovo);
+				}
+				
+				
+			}
+			
+		}
+
+	}
+	
+	private int conhecerMapa() {
+		int x = this.posicaoAtual.x;
+		int y = this.posicaoAtual.y;
+						
 		int []direcoes = new int[4];
 		
 		// CIMA
@@ -143,28 +289,29 @@ public class Poupador extends ProgramaPoupador {
 		for (int i = 0; i < arr.length; i++) {
 			if (this.visao_agente[arr[i]] == 200 || this.visao_agente[arr[i]] == 210 || this.visao_agente[arr[i]] == 220 || this.visao_agente[arr[i]] == 230) {
 				System.out.println("Correr do ladrão");
-				if (inDirection(DIRECAO_NORTE, arr[i])) {
+				if (contem(DIRECAO_NORTE, arr[i])) {
 					return movimentoAleatorio(new int[] { SUL, LESTE, OESTE });
-				} else if (inDirection(DIRECAO_SUL, arr[i])) {
+				} else if (contem(DIRECAO_SUL, arr[i])) {
 					return movimentoAleatorio(new int[] { NORTE, LESTE, OESTE });
-				} else if (inDirection(DIRECAO_LESTE, arr[i])) {
+				} else if (contem(DIRECAO_LESTE, arr[i])) {
 					return movimentoAleatorio(new int[] { OESTE, NORTE, SUL });
-				} else if (inDirection(DIRECAO_OESTE, arr[i])) {
+				} else if (contem(DIRECAO_OESTE, arr[i])) {
 					return movimentoAleatorio(new int[] { LESTE, NORTE, SUL });
-				} else if (inDirection(DIRECAO_NORDESTE, arr[i])) {
-					return movimentoAleatorio(new int[] {SUL, OESTE});
-				} else if (inDirection(DIRECAO_NOROESTE, arr[i])) {
-					return movimentoAleatorio(new int[] {SUL, LESTE});
-				} else if (inDirection(DIRECAO_SUDESTE, arr[i])) {
-					return movimentoAleatorio(new int[] {NORTE, OESTE});
-				} else if (inDirection(DIRECAO_SUDOESTE, arr[i])) {
-					return movimentoAleatorio(new int[] {NORTE, LESTE});
+				} else if (contem(DIRECAO_NORDESTE, arr[i])) {
+					return movimentoAleatorio(new int[] { SUL, OESTE });
+				} else if (contem(DIRECAO_NOROESTE, arr[i])) {
+					return movimentoAleatorio(new int[] { SUL, LESTE });
+				} else if (contem(DIRECAO_SUDESTE, arr[i])) {
+					return movimentoAleatorio(new int[] { NORTE, OESTE });
+				} else if (contem(DIRECAO_SUDOESTE, arr[i])) {
+					return movimentoAleatorio(new int[] { NORTE, LESTE });
 				}	
 			}
 		}
 		
 		return -1;
 	}
+	
 	
 	private int fugirLadrao() {
 		
@@ -195,14 +342,88 @@ public class Poupador extends ProgramaPoupador {
 		return -1;
 	}
 	
-	private int pensarJogada() {
+	int pegarMoedas() {
+		
+		return -1;
+	}
+	
+	int seAproximar(int valor) {
+		int x = this.posicaoAtual.x;
+		int y = this.posicaoAtual.y;
+		
+		ArrayList<Integer> arrayValores = new ArrayList<>();
+		ArrayList<Point> arrayPosicoes = new ArrayList<>();
+		for (int i = 0; i < this.visao_agente.length; i++) {
+			int xNovo = x + this.baseCoordenadaVisao[i][0];
+			int yNovo = y + this.baseCoordenadaVisao[i][1];
+			if (this.visao_agente[i] == valor) {
+				Point pontoNovo = new Point(xNovo, yNovo);
+				arrayValores.add(i);
+				arrayPosicoes.add(pontoNovo);
+				
+			}
+		}
+		
+		int menorDistancia = Integer.MAX_VALUE;
+		Point pontoMenorDistancia = null;
+		int valorMenorDistancia = Integer.MAX_VALUE;
+		int x1, y1;
+		
+		for (int i = 0; i < arrayPosicoes.size(); i++) {
+			x1 = arrayPosicoes.get(i).x;
+			y1 = arrayPosicoes.get(i).y;
+			if (distanciaManhattan(x1, y1, x, y) < menorDistancia) {
+				menorDistancia = distanciaManhattan(x1, y1, x, y);
+				pontoMenorDistancia = arrayPosicoes.get(i);
+				valorMenorDistancia = arrayValores.get(i);
+			}
+		}
+		
+		ArrayList<Point> arrayMenoresPontos = new ArrayList<>();
+		ArrayList<Integer> arrayMenoresValores = new ArrayList<>();
+		
+		for (int i = 0; i < arrayPosicoes.size(); i++) {
+			x1 = arrayPosicoes.get(i).x;
+			y1 = arrayPosicoes.get(i).y;
+			if (distanciaManhattan(x1, y1, x, y) == menorDistancia) {
+				arrayMenoresPontos.add(arrayPosicoes.get(i));
+				arrayMenoresValores.add(arrayValores.get(i));
+			}
+		}
+		
+		if (arrayMenoresPontos.size() > 0) {
+			int aleatorio = new Random().nextInt(arrayMenoresValores.size());
+//			Point escolhido = new Point(x - arrayMenoresPontos.get(aleatorio).x, y - arrayMenoresPontos.get(aleatorio).y);
+			int escolhidoValor = arrayMenoresValores.get(aleatorio);
+			return irEmDirecao(escolhidoValor);
+			
+		}
+		
+		return -1;
+	}
+	
+	private int pensarMovimento() {
+		
+		// TEM QUE SER FUGIR DO LADRAO, IR AO BANCO OU PEGAR MOEDA
+		// FAZER LOGICA RELACIONADO A FRASE A CIMA
 		int fugir = fugirLadrao();
 		
 		if (fugir != -1) {
 			return fugir;
 		}
+
+		int depositar = seAproximar(3);
+		if (depositar != -1 && this.sensor.getNumeroDeMoedas() > 0) {
+			return depositar;
+		}
 		
-		return seAventurar(); 
+		int temMoedas = seAproximar(4);
+		
+		if (temMoedas != -1) {
+			return temMoedas;
+		}
+		
+		return conhecerMapa(); 
 	}
 	
 	private int encontrarBanco() {
@@ -239,20 +460,33 @@ public class Poupador extends ProgramaPoupador {
 		
 		int aleatorio = new Random().nextInt(indicesMenoresManhattan.size());
 		// System.out.println(indicesMenoresManhattan.get(aleatorio) + 1);
-		System.out.println(indicesMenoresManhattan.get(aleatorio) + 1);
 		return indicesMenoresManhattan.get(aleatorio) + 1;
 		
+	}
+	
+	private int distanciaManhattan(int x1, int y1, int x0, int y0) {
+		return Math.abs(x1 - x0) + Math.abs(y1 - y0);
 	}
 		
 	@Override
 	public int acao() {
 		atualizarVariaveis();
 		
+//		mapearMapa();
+		memorizar();
+				
 //		for (int i = 0; i < this.visao_agente.length; i++) {
 //			System.out.print(this.visao_agente[i] + " ");
 //		}
 //		System.out.println();
 //		System.out.println(Constantes.posicaoBanco);
-		return pensarJogada();
+//		for (int i = 0; i < 30; i++) {
+//			for (int j = 0; j < 30; j++) {
+//				System.out.print(memoria[i][j] + " ");
+//			}
+//			System.out.println();
+//		}
+//		System.out.println("\n");
+		return pensarMovimento();
 	}
 }
