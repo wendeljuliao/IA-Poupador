@@ -2,6 +2,7 @@ package algoritmo;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
@@ -83,6 +84,13 @@ public class Poupador extends ProgramaPoupador {
 			{0, 0}, {0, -1}, {0, 1}, {1, 0}, {-1, 0}
 	};
 	
+	int[] baseDirecaoMovimentos = {
+			7,
+			16,
+			12,
+			11
+	};
+	
 	int PARADO = 0, NORTE = 1, SUL = 2, LESTE = 3, OESTE = 4;
 	int NORDESTE = new Random().nextBoolean() ? NORTE : LESTE;
 	int NOROESTE = new Random().nextBoolean() ? NORTE : OESTE;
@@ -114,6 +122,8 @@ public class Poupador extends ProgramaPoupador {
 	ArrayList<Point> memoriaMoedas = new ArrayList<>(); 
 	
 	Point posicaoAtual;
+	
+	ArrayList<Integer> ultimosPassos = new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0, 0));
 
 	
 //	Grafo grafoTeste = new Grafo();
@@ -136,10 +146,33 @@ public class Poupador extends ProgramaPoupador {
 		return false;
 	}
 	
-	private int movimentoAleatorio(int[] opcoes) {
-		int random = new Random().nextInt(opcoes.length);
+//	private int movimentoAleatorio(int[] opcoes) {
+//		int random = new Random().nextInt(opcoes.length);
+//		
+//		ArrayList<Integer> arrayOpcoes = new ArrayList<>();
+//		
+////		if (this.visao_agente[opcoes[random]] == 1) {
+////			movimentoAleatorio(opcoes);
+////		}
+//		
+//		return opcoes[random];
+//	}
+	
+	private int movimentoAleatorio(ArrayList<Integer> opcoes) {
+		if (opcoes.size() <= 0) {
+			System.out.println("Sem Opção");
+			return new Random().nextInt(4) + 1;
+		}
+		int random = new Random().nextInt(opcoes.size());
+
+		boolean temParede = this.visao_agente[this.DISTANCIA_UM[opcoes.get(random) - 1]] == 1;
+
+		if (temParede) {
+			opcoes.remove(random);
+			return movimentoAleatorio(opcoes);
+		}
 		
-		return opcoes[random];
+		return opcoes.get(random);
 	}
 	
 	private int irEmDirecao(int valor) {
@@ -152,13 +185,13 @@ public class Poupador extends ProgramaPoupador {
 		} else if (contem(DIRECAO_OESTE, valor)) {
 			return OESTE;
 		} else if (contem(DIRECAO_NORDESTE, valor)) {
-			return movimentoAleatorio(new int[] { NORTE, LESTE });
+			return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, LESTE )));
 		} else if (contem(DIRECAO_NOROESTE, valor)) {
-			return movimentoAleatorio(new int[] { NORTE, OESTE });
+			return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, OESTE )));
 		} else if (contem(DIRECAO_SUDESTE, valor)) {
-			return movimentoAleatorio(new int[] { SUL, LESTE });
+			return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, LESTE )));
 		} else if (contem(DIRECAO_SUDOESTE, valor)) {
-			return movimentoAleatorio(new int[] { SUL, OESTE });
+			return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, OESTE )));
 		}
 		
 		return -1;
@@ -288,23 +321,23 @@ public class Poupador extends ProgramaPoupador {
 	private int verificarLadrao(int[] arr) {
 		for (int i = 0; i < arr.length; i++) {
 			if (this.visao_agente[arr[i]] == 200 || this.visao_agente[arr[i]] == 210 || this.visao_agente[arr[i]] == 220 || this.visao_agente[arr[i]] == 230) {
-				System.out.println("Correr do ladrão");
+//				System.out.println("Correr do ladrão");
 				if (contem(DIRECAO_NORTE, arr[i])) {
-					return movimentoAleatorio(new int[] { SUL, LESTE, OESTE });
+					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, LESTE, OESTE )));
 				} else if (contem(DIRECAO_SUL, arr[i])) {
-					return movimentoAleatorio(new int[] { NORTE, LESTE, OESTE });
+					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, LESTE, OESTE )));
 				} else if (contem(DIRECAO_LESTE, arr[i])) {
-					return movimentoAleatorio(new int[] { OESTE, NORTE, SUL });
+					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( OESTE, NORTE, SUL )));
 				} else if (contem(DIRECAO_OESTE, arr[i])) {
-					return movimentoAleatorio(new int[] { LESTE, NORTE, SUL });
+					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( LESTE, NORTE, SUL )));
 				} else if (contem(DIRECAO_NORDESTE, arr[i])) {
-					return movimentoAleatorio(new int[] { SUL, OESTE });
+					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, OESTE )));
 				} else if (contem(DIRECAO_NOROESTE, arr[i])) {
-					return movimentoAleatorio(new int[] { SUL, LESTE });
+					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, LESTE )));
 				} else if (contem(DIRECAO_SUDESTE, arr[i])) {
-					return movimentoAleatorio(new int[] { NORTE, OESTE });
+					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, OESTE )));
 				} else if (contem(DIRECAO_SUDOESTE, arr[i])) {
-					return movimentoAleatorio(new int[] { NORTE, LESTE });
+					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, LESTE )));
 				}	
 			}
 		}
@@ -406,6 +439,10 @@ public class Poupador extends ProgramaPoupador {
 		
 		// TEM QUE SER FUGIR DO LADRAO, IR AO BANCO OU PEGAR MOEDA
 		// FAZER LOGICA RELACIONADO A FRASE A CIMA
+		if (estaLooping()) {
+			return (int) (Math.random() * 4) + 1;
+		}
+		
 		int fugir = fugirLadrao();
 		
 		if (fugir != -1) {
@@ -467,6 +504,27 @@ public class Poupador extends ProgramaPoupador {
 	private int distanciaManhattan(int x1, int y1, int x0, int y0) {
 		return Math.abs(x1 - x0) + Math.abs(y1 - y0);
 	}
+	
+	private boolean estaLooping() {
+		return (ultimosPassos.get(0).equals(ultimosPassos.get(2))
+				&& ultimosPassos.get(1).equals(ultimosPassos.get(3))
+				&& ultimosPassos.get(2).equals(ultimosPassos.get(4))
+				&& ultimosPassos.get(3).equals(ultimosPassos.get(5))
+				&& ultimosPassos.get(4).equals(ultimosPassos.get(6))
+				&& ultimosPassos.get(5).equals(ultimosPassos.get(7)));
+	}
+	
+	private void atualizarUltimosPassos(int comando) {
+		ultimosPassos.set(8, ultimosPassos.get(7));
+		ultimosPassos.set(7, ultimosPassos.get(6));
+		ultimosPassos.set(6, ultimosPassos.get(5));
+		ultimosPassos.set(5, ultimosPassos.get(4));
+		ultimosPassos.set(4, ultimosPassos.get(3));
+		ultimosPassos.set(3, ultimosPassos.get(2));
+		ultimosPassos.set(2, ultimosPassos.get(1));
+		ultimosPassos.set(1, ultimosPassos.get(0));
+		ultimosPassos.set(0, comando);
+	}
 		
 	@Override
 	public int acao() {
@@ -487,6 +545,8 @@ public class Poupador extends ProgramaPoupador {
 //			System.out.println();
 //		}
 //		System.out.println("\n");
-		return pensarMovimento();
+		int comando = pensarMovimento();
+		atualizarUltimosPassos(comando);
+		return comando;
 	}
 }
