@@ -166,8 +166,9 @@ public class Poupador extends ProgramaPoupador {
 		int random = new Random().nextInt(opcoes.size());
 
 		boolean temParede = this.visao_agente[this.DISTANCIA_UM[opcoes.get(random) - 1]] == 1;
-
-		if (temParede) {
+		boolean foraAmbiente = this.visao_agente[this.DISTANCIA_UM[opcoes.get(random) - 1]] == -1;
+		
+		if (temParede || foraAmbiente) {
 			opcoes.remove(random);
 			return movimentoAleatorio(opcoes);
 		}
