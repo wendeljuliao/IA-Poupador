@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.PriorityQueue;
 import java.util.Random;
 
 import controle.Constantes;
@@ -18,58 +20,103 @@ public class Poupador extends ProgramaPoupador {
 		} 
     }
 	
-//	class Grafo {
-//		private HashMap<Coordenada, ArrayList<Coordenada>> grafo = new HashMap<>();
-//		
-//		public void addEdge(Coordenada origem, Coordenada destino) {
-//			if (!grafo.containsKey(origem)) {
-//				addVertex(origem);
+	class Grafo {
+		private HashMap<Point, ArrayList<Edge>> grafo = new HashMap<>();
+		
+		public void addEdge(Point origem, Point destino, int peso) {
+			if (!hasVertex(origem)) {
+				addVertex(origem);
+			}
+			
+			if (!hasVertex(destino)) {
+				addVertex(destino);
+			}
+			
+			if (!hasEdge(origem, destino)) {
+				grafo.get(origem).add(new Edge(origem, destino, peso));				
+			}
+			
+			if (!hasEdge(destino, origem)) {
+				grafo.get(origem).add(new Edge(destino, origem, peso));				
+			}
+			
+//			if (!hasEdge(destino, origem)) {
+//				grafo.get(destino).add(origem);				
 //			}
-//			
-//			if (!grafo.containsKey(destino)) {
-//				addVertex(destino);
-//			}
-//			
-//			if (!hasEdge(origem, destino)) {
-//				grafo.get(origem).add(destino);				
-//			}
-//			
-////			if (!hasEdge(destino, origem)) {
-////				grafo.get(destino).add(origem);				
-////			}
-//		}
-//		
-//		private boolean hasEdge(Coordenada origem, Coordenada destino) {
-//			if (grafo.get(origem).contains(destino)) {
-//				return true;
-//			}
-//			return false;
-//		}
-//		
-//		public void addVertex(Coordenada vertex) {
-//			grafo.put(vertex, new ArrayList<Coordenada>());
-//		}
-//	}
+		}
+		
+		private boolean hasEdge(Point origem, Point destino) {
+			ArrayList<Edge> arestasPonto = grafo.get(origem);
+			if (arestasPonto.stream().anyMatch(x -> x.destino.equals(destino))) {
+				return true;
+			}
+
+			return false;
+		}
+		
+		public boolean hasVertex(Point vertex) {
+			return grafo.containsKey(vertex);
+		}
+		
+		public void addVertex(Point vertex) {
+			grafo.put(vertex, new ArrayList<Edge>());
+		}
+		
+		public void mostrarVertexs() {
+			System.out.println(this.grafo.keySet());
+		}
+		
+		public boolean temBanco() {
+			return grafo.containsKey(Constantes.posicaoBanco);
+		}
+	}
 	
-//	class Coordenada {
-//		private Point coordenada;
-//		private int[] vizinhos;
-//		
-//		public Coordenada(Point coordenada, int[] vizinhos) {
-//			this.coordenada = coordenada;
-//
-//			this.vizinhos = vizinhos;
-//		}
-//
-//		public Point getCoordenada() {
-//			return coordenada;
-//		}
-//
-//		public int[] getVizinhos() {
-//			return vizinhos;
-//		}
-//		
-//	}
+	public class Coordenada {
+		Point coordenada;
+		Coordenada parent = null;
+		
+		Coordenada (Point coordenada ) {
+			this.coordenada = coordenada;
+		}
+		
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Coordenada coordenadaNova = (Coordenada) o;
+            return coordenada.equals(coordenadaNova.coordenada);
+        }
+	}
+	
+	public class Edge {
+		Point origem;
+		Point destino;
+		int peso;
+		
+		Edge (Point origem, Point destino, int peso) {
+			this.origem = origem;
+			this.destino = destino;
+			this.peso = peso;
+		}
+		
+		@Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Edge edge = (Edge) o;
+            return origem.equals(edge.origem) &&
+                    destino.equals(edge.destino) &&
+                    peso == edge.peso;
+        }
+	}
 	
 	int[][] baseCoordenadaVisao = {
 			{-2, -2}, {-1, -2}, {0, -2}, {1, -2}, {2, -2},
@@ -125,9 +172,7 @@ public class Poupador extends ProgramaPoupador {
 	
 	ArrayList<Integer> ultimosPassos = new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0, 0));
 
-	
-//	Grafo grafoTeste = new Grafo();
-//	HashMap<Point, Coordenada> grafo = new HashMap<Point, Coordenada>();
+	Grafo grafo = new Grafo();
 	
 	void atualizarVariaveis() {
 		posicaoAtual = this.sensor.getPosicao();
@@ -228,15 +273,20 @@ public class Poupador extends ProgramaPoupador {
 		// Já que pisei nesse canto, removo a moeda se tiver aqui
 		memoriaMoedas.remove(this.posicaoAtual);
 		// Cantos que já "pisei!"
-		memoria[x][y] = 9;				
+		memoria[x][y] = 9;	
+		
+		
+		
+		int xNovo, yNovo;
+		Point pontoNovo;
 				
 		for (int i = 0; i < visao_agente.length; i++) {
-			int xNovo = x + baseCoordenadaVisao[i][0];
-			int yNovo = y + baseCoordenadaVisao[i][1];
+			xNovo = x + baseCoordenadaVisao[i][0];
+			yNovo = y + baseCoordenadaVisao[i][1];
 			
 			
 			if (this.visao_agente[i] != -1 && this.visao_agente[i] != -2) {
-				Point pontoNovo = new Point (xNovo, yNovo);
+				pontoNovo = new Point (xNovo, yNovo);
 				
 				// Já pisei ? Se não pisei, coloque o que tem lá
 				if (memoria[xNovo][yNovo] != 9) {
@@ -251,7 +301,20 @@ public class Poupador extends ProgramaPoupador {
 			}
 			
 		}
-
+		
+		int bloco;
+		
+		for (int i = 0; i < DISTANCIA_UM.length; i++) {
+			bloco = this.visao_agente[DISTANCIA_UM[i]];
+			if (bloco == 0 || bloco == 4) {
+				xNovo = x + baseCoordenadaVisao[DISTANCIA_UM[i]][0];
+				yNovo = y + baseCoordenadaVisao[DISTANCIA_UM[i]][1];	
+				pontoNovo = new Point (xNovo, yNovo);
+				
+				grafo.addEdge(this.posicaoAtual, pontoNovo, 1);
+				
+			}
+		}
 	}
 	
 	private int conhecerMapa() {
@@ -445,61 +508,107 @@ public class Poupador extends ProgramaPoupador {
 		}
 		
 		int fugir = fugirLadrao();
-		
 		if (fugir != -1) {
 			return fugir;
 		}
 
-		int depositar = seAproximar(3);
-		if (depositar != -1 && this.sensor.getNumeroDeMoedas() > 0) {
-			return depositar;
-		}
-		
 		int temMoedas = seAproximar(4);
-		
 		if (temMoedas != -1) {
 			return temMoedas;
 		}
 		
+		int depositar = depositar();
+		if (depositar != -1) {
+			return depositar;
+		}
+		
+		
 		return conhecerMapa(); 
 	}
 	
-	private int encontrarBanco() {
-		int x = (int) this.sensor.getPosicao().x;
-		int y = (int) this.sensor.getPosicao().y;
+	private int depositar() {
 		
-		int xBanco = (int) Constantes.posicaoBanco.x;
-		int yBanco = (int) Constantes.posicaoBanco.y;
+		int vendoBanco = seAproximar(3);
 		
-//		System.out.println("x: " + x + " | y: " + y);
-//		System.out.println("xBanco: " + xBanco + " | yBanco: " + yBanco);
-		
-		// Cima, Baixo, Direita, Esquerda
-		int[] distanciaManhattan = new int[] {(Math.abs(xBanco - x) + Math.abs(yBanco - (y - 1))),
-											  (Math.abs(xBanco - x) + Math.abs(yBanco - (y + 1))),
-											  (Math.abs(xBanco - (x + 1)) + Math.abs(yBanco - y)),
-											  (Math.abs(xBanco - (x - 1)) + Math.abs(yBanco - y))};
-		
-		int menorManhattan = Integer.MAX_VALUE;
-		ArrayList<Integer> indicesMenoresManhattan = new ArrayList<Integer>();
-		
-		for (int i = 0; i < distanciaManhattan.length; i++) {
-//			System.out.println(distanciaManhattan[i]);
-			if (distanciaManhattan[i] < menorManhattan && this.visao_agente[DISTANCIA_UM[i]] != 1 && this.visao_agente[DISTANCIA_UM[i]] != 5) {
-				menorManhattan = distanciaManhattan[i];		
-			}
+		if (vendoBanco != -1 && this.sensor.getNumeroDeMoedas() > 0) {
+			return vendoBanco;
 		}
 		
-		for (int i = 0; i < distanciaManhattan.length; i++) {
-			if (distanciaManhattan[i] == menorManhattan) {
-				indicesMenoresManhattan.add(i);
+		if (grafo.temBanco() && this.sensor.getNumeroDeMoedas() >= 5) {
+			LinkedList<Coordenada> closedList = new LinkedList<>();
+			LinkedList<Coordenada> openList = new LinkedList<>();
+			
+			ArrayList<Point> movimentos = new ArrayList<>();
+			
+			Coordenada fim;
+			
+			
+			openList.add(new Coordenada(posicaoAtual));
+			
+			while(!openList.isEmpty()) {
+				Coordenada n = openList.peek();
+				
+				if (n.coordenada.equals(Constantes.posicaoBanco)) {
+					fim = n;
+					while (fim.parent != null) {
+						movimentos.add(fim.coordenada);
+						fim = fim.parent;
+					}
+					break;
+				}
+				
+				for (Edge atual : grafo.grafo.get(n.coordenada)) {
+					Coordenada m = new Coordenada(atual.destino);
+					m.parent = n;
+							
+					if (!openList.stream().anyMatch(x -> x.coordenada.equals(m.coordenada)) &&
+						!closedList.stream().anyMatch(x -> x.coordenada.equals(m.coordenada))) {
+						openList.add(m);
+					} else {
+						
+						if (closedList.stream().anyMatch(x -> x.coordenada.equals(m.coordenada))) {
+							closedList.removeIf(x -> x.coordenada.equals(m.coordenada));
+							openList.add(m);
+						}
+					}
+				}
+				closedList.removeIf(x -> x.coordenada.equals(n.coordenada));
+				openList.removeIf(x -> x.coordenada.equals(n.coordenada));
+			}
+			if (!movimentos.isEmpty()) {
+				int x = posicaoAtual.x;
+				int y = posicaoAtual.y;
+				Point movimentoSequente = movimentos.get(movimentos.size() - 1);
+				int xSeq = movimentoSequente.x;
+				int ySeq = movimentoSequente.y;
+				
+//				System.out.println(xSeq + " " + ySeq);
+//				System.out.println(x + " " + y);
+				ArrayList<Integer> escolhas = new ArrayList<Integer>();
+				
+				if (x - xSeq > 0) {
+					escolhas.add(4);
+				}
+				
+				if (x - xSeq < 0) {
+					escolhas.add(3);
+				}
+				
+				if (y - ySeq > 0) {
+					escolhas.add(1);
+				}
+				
+				if (y - ySeq < 0) {
+					escolhas.add(2);
+				}
+
+				return movimentoAleatorio(escolhas);
+				
 			}
 		}
+
 		
-		int aleatorio = new Random().nextInt(indicesMenoresManhattan.size());
-		// System.out.println(indicesMenoresManhattan.get(aleatorio) + 1);
-		return indicesMenoresManhattan.get(aleatorio) + 1;
-		
+		return -1;
 	}
 	
 	private int distanciaManhattan(int x1, int y1, int x0, int y0) {
@@ -533,7 +642,7 @@ public class Poupador extends ProgramaPoupador {
 		
 //		mapearMapa();
 		memorizar();
-				
+						
 //		for (int i = 0; i < this.visao_agente.length; i++) {
 //			System.out.print(this.visao_agente[i] + " ");
 //		}

@@ -50,6 +50,8 @@ public class Ladrao extends ProgramaLadrao {
 		this.posAnterior = sensor.getPosicao();
 		
 		return retorno;
+		
+//		return (int) (Math.random() * 4) + 1;
 	}
 
 
