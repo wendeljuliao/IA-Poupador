@@ -572,7 +572,8 @@ public class Poupador extends ProgramaPoupador {
 						}
 					}
 				}
-				closedList.removeIf(x -> x.coordenada.equals(n.coordenada));
+//				closedList.removeIf(x -> x.coordenada.equals(n.coordenada));
+				closedList.add(n);
 				openList.removeIf(x -> x.coordenada.equals(n.coordenada));
 			}
 			if (!movimentos.isEmpty()) {

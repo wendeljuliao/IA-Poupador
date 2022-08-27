@@ -35,23 +35,23 @@ public class Ladrao extends ProgramaLadrao {
 
 	public int acao() {
 		
-		confirmaRoubo();
-		Point posicaoAtual = sensor.getPosicao();
-		this.matriz[(int) posicaoAtual.getY()][(int) posicaoAtual.getX()]++;
-
-		List<Sucessor> sucessores = getSucessor(posicaoAtual);
+//		confirmaRoubo();
+//		Point posicaoAtual = sensor.getPosicao();
+//		this.matriz[(int) posicaoAtual.getY()][(int) posicaoAtual.getX()]++;
+//
+//		List<Sucessor> sucessores = getSucessor(posicaoAtual);
+//		
+//		persepcao();
+//		
+////		printaMatriz();
+//		
+//		int retorno = tomarDecisao(sucessores);
+//		
+//		this.posAnterior = sensor.getPosicao();
+//		
+//		return retorno;
 		
-		persepcao();
-		
-//		printaMatriz();
-		
-		int retorno = tomarDecisao(sucessores);
-		
-		this.posAnterior = sensor.getPosicao();
-		
-		return retorno;
-		
-//		return (int) (Math.random() * 4) + 1;
+		return (int) (Math.random() * 4) + 1;
 	}
 
 
