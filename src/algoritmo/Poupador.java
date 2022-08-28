@@ -163,7 +163,7 @@ public class Poupador extends ProgramaPoupador {
 	final int MOEDA = 4;
 	
 	int[] visao_agente;
-	int[] olfato_agente;
+	int[] olfato_ladrao;
 	int[][] visitados = new int[30][30];
 	int[][] memoria = new int[30][30];
 	ArrayList<Point> memoriaMoedas = new ArrayList<>(); 
@@ -178,7 +178,7 @@ public class Poupador extends ProgramaPoupador {
 		posicaoAtual = this.sensor.getPosicao();
 		this.visitados[posicaoAtual.x][posicaoAtual.y]++;
 		visao_agente = this.sensor.getVisaoIdentificacao();
-		olfato_agente = this.sensor.getAmbienteOlfatoPoupador();
+		olfato_ladrao = this.sensor.getAmbienteOlfatoLadrao();
 	}
 	
 
@@ -218,6 +218,11 @@ public class Poupador extends ProgramaPoupador {
 			return movimentoAleatorio(opcoes);
 		}
 		
+		return opcoes.get(random);
+	}
+	
+	private int selecionarAleatorio(ArrayList<Integer> opcoes) {
+		int random = new Random().nextInt(opcoes.size());
 		return opcoes.get(random);
 	}
 	
@@ -271,36 +276,36 @@ public class Poupador extends ProgramaPoupador {
 		int y = this.posicaoAtual.y;
 		
 		// Já que pisei nesse canto, removo a moeda se tiver aqui
-		memoriaMoedas.remove(this.posicaoAtual);
+//		memoriaMoedas.remove(this.posicaoAtual);
 		// Cantos que já "pisei!"
-		memoria[x][y] = 9;	
+//		memoria[x][y] = 9;	
 		
 		
 		
 		int xNovo, yNovo;
 		Point pontoNovo;
 				
-		for (int i = 0; i < visao_agente.length; i++) {
-			xNovo = x + baseCoordenadaVisao[i][0];
-			yNovo = y + baseCoordenadaVisao[i][1];
-			
-			
-			if (this.visao_agente[i] != -1 && this.visao_agente[i] != -2) {
-				pontoNovo = new Point (xNovo, yNovo);
-				
-				// Já pisei ? Se não pisei, coloque o que tem lá
-				if (memoria[xNovo][yNovo] != 9) {
-					memoria[xNovo][yNovo] = this.visao_agente[i];
-				}
-				
-				if (this.visao_agente[i] == 4 && !memoriaMoedas.contains(pontoNovo)) {
-					memoriaMoedas.add(pontoNovo);
-				}
-				
-				
-			}
-			
-		}
+//		for (int i = 0; i < visao_agente.length; i++) {
+//			xNovo = x + baseCoordenadaVisao[i][0];
+//			yNovo = y + baseCoordenadaVisao[i][1];
+//			
+//			
+//			if (this.visao_agente[i] != -1 && this.visao_agente[i] != -2) {
+//				pontoNovo = new Point (xNovo, yNovo);
+//				
+//				// Já pisei ? Se não pisei, coloque o que tem lá
+//				if (memoria[xNovo][yNovo] != 9) {
+//					memoria[xNovo][yNovo] = this.visao_agente[i];
+//				}
+//				
+//				if (this.visao_agente[i] == 4 && !memoriaMoedas.contains(pontoNovo)) {
+//					memoriaMoedas.add(pontoNovo);
+//				}
+//				
+//				
+//			}
+//			
+//		}
 		
 		int bloco;
 		
@@ -439,6 +444,67 @@ public class Poupador extends ProgramaPoupador {
 		return -1;
 	}
 	
+	public int verificarOlfato(int indice) {
+		if (indice == 0) {
+			return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, LESTE )));
+		} else if (indice == 1) {
+			return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, LESTE, OESTE )));
+		} else if (indice == 2) {
+			return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, OESTE )));
+		} else if (indice == 3) {
+			return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, SUL, LESTE )));
+		} else if (indice == 4) {
+			return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, SUL, OESTE)));
+		} else if (indice == 5) {
+			return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, LESTE )));
+		} else if (indice == 6) {
+			return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, LESTE, OESTE )));
+		} else if (indice == 7) {
+			return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, OESTE )));
+		}
+		return -1;
+	}
+	
+	public int sentirOlfatoLadrao() {
+		ArrayList<Integer> olfatoUm = new ArrayList<>();
+		ArrayList<Integer> olfatoDois = new ArrayList<>();
+		ArrayList<Integer> olfatoTres = new ArrayList<>();
+		ArrayList<Integer> olfatoQuatro = new ArrayList<>();
+		ArrayList<Integer> olfatoCinco = new ArrayList<>();
+		
+		for (int i = 0; i < olfato_ladrao.length; i++) {
+			if (olfato_ladrao[i] == 1) {
+				olfatoUm.add(i);
+			} else if (olfato_ladrao[i] == 2) {
+				olfatoDois.add(i);
+			} else if (olfato_ladrao[i] == 3) {
+				olfatoTres.add(i);
+			} else if (olfato_ladrao[i] == 4) {
+				olfatoQuatro.add(i);
+			} else if (olfato_ladrao[i] == 5) {
+				olfatoCinco.add(i);
+			} 			
+		}
+		
+		if (!olfatoUm.isEmpty()) {
+			return verificarOlfato(selecionarAleatorio(olfatoUm));		
+		}
+		if (!olfatoDois.isEmpty()) {
+			return verificarOlfato(selecionarAleatorio(olfatoDois));		
+		}
+		if (!olfatoTres.isEmpty()) {
+			return verificarOlfato(selecionarAleatorio(olfatoTres));		
+		}
+		if (!olfatoQuatro.isEmpty()) {
+			return verificarOlfato(selecionarAleatorio(olfatoQuatro));		
+		}
+		if (!olfatoCinco.isEmpty()) {
+			return verificarOlfato(selecionarAleatorio(olfatoCinco));		
+		}
+		
+		return -1;
+	}
+	
 	int pegarMoedas() {
 		
 		return -1;
@@ -511,7 +577,13 @@ public class Poupador extends ProgramaPoupador {
 		if (fugir != -1) {
 			return fugir;
 		}
-
+		
+		int sentirOlfato = sentirOlfatoLadrao();
+		if (sentirOlfato != -1) {
+			System.out.println("Sentindo...");
+			return sentirOlfato;
+		}
+		
 		int temMoedas = seAproximar(4);
 		if (temMoedas != -1) {
 			return temMoedas;
@@ -534,7 +606,7 @@ public class Poupador extends ProgramaPoupador {
 			return vendoBanco;
 		}
 		
-		if (grafo.temBanco() && this.sensor.getNumeroDeMoedas() >= 5) {
+		if (grafo.temBanco() && this.sensor.getNumeroDeMoedas() > 3) {
 			LinkedList<Coordenada> closedList = new LinkedList<>();
 			LinkedList<Coordenada> openList = new LinkedList<>();
 			
