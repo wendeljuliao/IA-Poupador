@@ -205,15 +205,16 @@ public class Poupador extends ProgramaPoupador {
 	
 	private int movimentoAleatorio(ArrayList<Integer> opcoes) {
 		if (opcoes.size() <= 0) {
-			System.out.println("Sem Opção");
+//			System.out.println("Sem Opção");
 			return new Random().nextInt(4) + 1;
 		}
 		int random = new Random().nextInt(opcoes.size());
 
 		boolean temParede = this.visao_agente[this.DISTANCIA_UM[opcoes.get(random) - 1]] == 1;
 		boolean foraAmbiente = this.visao_agente[this.DISTANCIA_UM[opcoes.get(random) - 1]] == -1;
+		boolean pastilhaDoPoder = this.visao_agente[this.DISTANCIA_UM[opcoes.get(random) - 1]] == 5;
 		
-		if (temParede || foraAmbiente) {
+		if (temParede || foraAmbiente || pastilhaDoPoder) {
 			opcoes.remove(random);
 			return movimentoAleatorio(opcoes);
 		}
@@ -263,55 +264,19 @@ public class Poupador extends ProgramaPoupador {
 		return (int) (Math.random() * 5);
 	}
 	
-//	void mapearMapa() {
-//		Coordenada coordenada = new Coordenada(posicaoAtual, this.visao_agente);
-//		
-////		grafoTeste.addEdge(new Coordenada(posicaoAtual, 0, this.visao_agente), new Coordenada(posicaoAtual, 0, this.visao_agente));
-//		
-//		grafo.put(this.sensor.getPosicao(), coordenada);
-//	}
-	
 	void memorizar() {
 		int x = this.posicaoAtual.x; 
 		int y = this.posicaoAtual.y;
 		
-		// Já que pisei nesse canto, removo a moeda se tiver aqui
-//		memoriaMoedas.remove(this.posicaoAtual);
-		// Cantos que já "pisei!"
-//		memoria[x][y] = 9;	
-		
-		
-		
 		int xNovo, yNovo;
 		Point pontoNovo;
-				
-//		for (int i = 0; i < visao_agente.length; i++) {
-//			xNovo = x + baseCoordenadaVisao[i][0];
-//			yNovo = y + baseCoordenadaVisao[i][1];
-//			
-//			
-//			if (this.visao_agente[i] != -1 && this.visao_agente[i] != -2) {
-//				pontoNovo = new Point (xNovo, yNovo);
-//				
-//				// Já pisei ? Se não pisei, coloque o que tem lá
-//				if (memoria[xNovo][yNovo] != 9) {
-//					memoria[xNovo][yNovo] = this.visao_agente[i];
-//				}
-//				
-//				if (this.visao_agente[i] == 4 && !memoriaMoedas.contains(pontoNovo)) {
-//					memoriaMoedas.add(pontoNovo);
-//				}
-//				
-//				
-//			}
-//			
-//		}
 		
 		int bloco;
 		
 		for (int i = 0; i < DISTANCIA_UM.length; i++) {
 			bloco = this.visao_agente[DISTANCIA_UM[i]];
-			if (bloco == 0 || bloco == 4) {
+			if (bloco == 0 || bloco == 3 || bloco == 4 || bloco == 5 ||
+				bloco == 200 || bloco == 210 || bloco == 220 || bloco == 230) {
 				xNovo = x + baseCoordenadaVisao[DISTANCIA_UM[i]][0];
 				yNovo = y + baseCoordenadaVisao[DISTANCIA_UM[i]][1];	
 				pontoNovo = new Point (xNovo, yNovo);
@@ -569,9 +534,9 @@ public class Poupador extends ProgramaPoupador {
 		
 		// TEM QUE SER FUGIR DO LADRAO, IR AO BANCO OU PEGAR MOEDA
 		// FAZER LOGICA RELACIONADO A FRASE A CIMA
-		if (estaLooping()) {
-			return (int) (Math.random() * 4) + 1;
-		}
+//		if (estaLooping()) {
+//			return (int) (Math.random() * 4) + 1;
+//		}
 		
 		int fugir = fugirLadrao();
 		if (fugir != -1) {
@@ -580,7 +545,7 @@ public class Poupador extends ProgramaPoupador {
 		
 		int sentirOlfato = sentirOlfatoLadrao();
 		if (sentirOlfato != -1) {
-			System.out.println("Sentindo...");
+//			System.out.println("Sentindo...");
 			return sentirOlfato;
 		}
 		
