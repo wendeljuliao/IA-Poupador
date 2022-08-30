@@ -12,18 +12,18 @@ import java.util.Random;
 import controle.Constantes;
 
 public class Poupador extends ProgramaPoupador {
-	Poupador() {
-		for (int i = 0; i < 30; i++) {
-			for (int j = 0; j < 30; j++) {
-				memoria[i][j] = -9;
-			}
-		} 
-    }
-	
+//	Poupador() {
+//		for (int i = 0; i < 30; i++) {
+//			for (int j = 0; j < 30; j++) {
+//				memoria[i][j] = -9;
+//			}
+//		} 
+//    }
+//	
 	class Grafo {
-		private HashMap<Point, ArrayList<Edge>> grafo = new HashMap<>();
+		private HashMap<Point, ArrayList<Point>> grafo = new HashMap<>();
 		
-		public void addEdge(Point origem, Point destino, int peso) {
+		public void addEdge(Point origem, Point destino) {
 			if (!hasVertex(origem)) {
 				addVertex(origem);
 			}
@@ -33,11 +33,11 @@ public class Poupador extends ProgramaPoupador {
 			}
 			
 			if (!hasEdge(origem, destino)) {
-				grafo.get(origem).add(new Edge(origem, destino, peso));				
+				grafo.get(origem).add(destino);				
 			}
 			
 			if (!hasEdge(destino, origem)) {
-				grafo.get(origem).add(new Edge(destino, origem, peso));				
+				grafo.get(origem).add(destino);				
 			}
 			
 //			if (!hasEdge(destino, origem)) {
@@ -46,8 +46,7 @@ public class Poupador extends ProgramaPoupador {
 		}
 		
 		private boolean hasEdge(Point origem, Point destino) {
-			ArrayList<Edge> arestasPonto = grafo.get(origem);
-			if (arestasPonto.stream().anyMatch(x -> x.destino.equals(destino))) {
+			if (grafo.get(origem).contains(destino)) {
 				return true;
 			}
 
@@ -59,7 +58,7 @@ public class Poupador extends ProgramaPoupador {
 		}
 		
 		public void addVertex(Point vertex) {
-			grafo.put(vertex, new ArrayList<Edge>());
+			grafo.put(vertex, new ArrayList<Point>());
 		}
 		
 		public void mostrarVertexs() {
@@ -92,31 +91,31 @@ public class Poupador extends ProgramaPoupador {
         }
 	}
 	
-	public class Edge {
-		Point origem;
-		Point destino;
-		int peso;
-		
-		Edge (Point origem, Point destino, int peso) {
-			this.origem = origem;
-			this.destino = destino;
-			this.peso = peso;
-		}
-		
-		@Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            Edge edge = (Edge) o;
-            return origem.equals(edge.origem) &&
-                    destino.equals(edge.destino) &&
-                    peso == edge.peso;
-        }
-	}
+//	public class Edge {
+//		Point origem;
+//		Point destino;
+//		int peso;
+//		
+//		Edge (Point origem, Point destino, int peso) {
+//			this.origem = origem;
+//			this.destino = destino;
+//			this.peso = peso;
+//		}
+//		
+//		@Override
+//        public boolean equals(Object o) {
+//            if (this == o) {
+//                return true;
+//            }
+//            if (o == null || getClass() != o.getClass()) {
+//                return false;
+//            }
+//            Edge edge = (Edge) o;
+//            return origem.equals(edge.origem) &&
+//                    destino.equals(edge.destino) &&
+//                    peso == edge.peso;
+//        }
+//	}
 	
 	int[][] baseCoordenadaVisao = {
 			{-2, -2}, {-1, -2}, {0, -2}, {1, -2}, {2, -2},
@@ -164,7 +163,7 @@ public class Poupador extends ProgramaPoupador {
 	
 	int[] visao_agente;
 	int[] olfato_ladrao;
-	int[][] visitados = new int[30][30];
+	int[][] visitados = new int[31][31];
 	int[][] memoria = new int[30][30];
 	ArrayList<Point> memoriaMoedas = new ArrayList<>(); 
 	
@@ -175,10 +174,10 @@ public class Poupador extends ProgramaPoupador {
 	Grafo grafo = new Grafo();
 	
 	void atualizarVariaveis() {
-		posicaoAtual = this.sensor.getPosicao();
+		this.posicaoAtual = this.sensor.getPosicao();
 		this.visitados[posicaoAtual.x][posicaoAtual.y]++;
-		visao_agente = this.sensor.getVisaoIdentificacao();
-		olfato_ladrao = this.sensor.getAmbienteOlfatoLadrao();
+		this.visao_agente = this.sensor.getVisaoIdentificacao();
+		this.olfato_ladrao = this.sensor.getAmbienteOlfatoLadrao();
 	}
 	
 
@@ -273,15 +272,15 @@ public class Poupador extends ProgramaPoupador {
 		
 		int bloco;
 		
-		for (int i = 0; i < DISTANCIA_UM.length; i++) {
-			bloco = this.visao_agente[DISTANCIA_UM[i]];
+		for (int i = 0; i < visao_agente.length; i++) {
+			bloco = this.visao_agente[i];
 			if (bloco == 0 || bloco == 3 || bloco == 4 || bloco == 5 ||
 				bloco == 200 || bloco == 210 || bloco == 220 || bloco == 230) {
-				xNovo = x + baseCoordenadaVisao[DISTANCIA_UM[i]][0];
-				yNovo = y + baseCoordenadaVisao[DISTANCIA_UM[i]][1];	
+				xNovo = x + baseCoordenadaVisao[i][0];
+				yNovo = y + baseCoordenadaVisao[i][1];	
 				pontoNovo = new Point (xNovo, yNovo);
 				
-				grafo.addEdge(this.posicaoAtual, pontoNovo, 1);
+				grafo.addEdge(this.posicaoAtual, pontoNovo);
 				
 			}
 		}
@@ -353,24 +352,33 @@ public class Poupador extends ProgramaPoupador {
 	}
 	
 	private int verificarLadrao(int[] arr) {
+		ArrayList<Integer> aux = new ArrayList<>();
 		for (int i = 0; i < arr.length; i++) {
 			if (this.visao_agente[arr[i]] == 200 || this.visao_agente[arr[i]] == 210 || this.visao_agente[arr[i]] == 220 || this.visao_agente[arr[i]] == 230) {
 //				System.out.println("Correr do ladrão");
 				if (contem(DIRECAO_NORTE, arr[i])) {
+//					aux.addAll(Arrays.asList( SUL, LESTE, OESTE ));
 					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, LESTE, OESTE )));
 				} else if (contem(DIRECAO_SUL, arr[i])) {
+//					aux.addAll(Arrays.asList( NORTE, LESTE, OESTE ));
 					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, LESTE, OESTE )));
 				} else if (contem(DIRECAO_LESTE, arr[i])) {
+//					aux.addAll(Arrays.asList( OESTE, NORTE, SUL ));
 					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( OESTE, NORTE, SUL )));
 				} else if (contem(DIRECAO_OESTE, arr[i])) {
+//					aux.addAll(Arrays.asList( OESTE, NORTE, SUL ));
 					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( LESTE, NORTE, SUL )));
 				} else if (contem(DIRECAO_NORDESTE, arr[i])) {
+//					aux.addAll(Arrays.asList( SUL, OESTE ));
 					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, OESTE )));
 				} else if (contem(DIRECAO_NOROESTE, arr[i])) {
+//					aux.addAll(Arrays.asList( SUL, LESTE ));
 					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, LESTE )));
 				} else if (contem(DIRECAO_SUDESTE, arr[i])) {
+//					aux.addAll(Arrays.asList( NORTE, OESTE ));
 					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, OESTE )));
 				} else if (contem(DIRECAO_SUDOESTE, arr[i])) {
+//					aux.addAll(Arrays.asList( NORTE, LESTE ));
 					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, LESTE )));
 				}	
 			}
@@ -537,26 +545,32 @@ public class Poupador extends ProgramaPoupador {
 //		if (estaLooping()) {
 //			return (int) (Math.random() * 4) + 1;
 //		}
-		
+			
 		int fugir = fugirLadrao();
 		if (fugir != -1) {
 			return fugir;
 		}
-		
+			
 		int sentirOlfato = sentirOlfatoLadrao();
 		if (sentirOlfato != -1) {
-//			System.out.println("Sentindo...");
+	//		System.out.println("Sentindo...");
 			return sentirOlfato;
 		}
-		
-		int temMoedas = seAproximar(4);
-		if (temMoedas != -1) {
-			return temMoedas;
+			
+		if (estaLooping()) {
+			return new Random().nextInt() * 4 + 1;
 		}
-		
-		int depositar = depositar();
-		if (depositar != -1) {
-			return depositar;
+		if (grafo.temBanco()) {
+			
+			int temMoedas = seAproximar(4);
+			if (temMoedas != -1) {
+				return temMoedas;
+			}
+			
+			int depositar = depositar();
+			if (depositar != -1) {
+				return depositar;
+			}
 		}
 		
 		
@@ -572,21 +586,22 @@ public class Poupador extends ProgramaPoupador {
 		}
 		
 		if (grafo.temBanco() && this.sensor.getNumeroDeMoedas() > 3) {
-			LinkedList<Coordenada> closedList = new LinkedList<>();
-			LinkedList<Coordenada> openList = new LinkedList<>();
+			LinkedList<Point> visitadosGrafo = new LinkedList<>();
+			LinkedList<Coordenada> queue = new LinkedList<>();
 			
 			ArrayList<Point> movimentos = new ArrayList<>();
 			
+			
+			Coordenada aux;
 			Coordenada fim;
 			
+			queue.add(new Coordenada(posicaoAtual));
 			
-			openList.add(new Coordenada(posicaoAtual));
-			
-			while(!openList.isEmpty()) {
-				Coordenada n = openList.peek();
+			while(!queue.isEmpty()) {
+				aux = queue.pop();
 				
-				if (n.coordenada.equals(Constantes.posicaoBanco)) {
-					fim = n;
+				if (aux.coordenada.equals(Constantes.posicaoBanco)) {
+					fim = aux;
 					while (fim.parent != null) {
 						movimentos.add(fim.coordenada);
 						fim = fim.parent;
@@ -594,24 +609,16 @@ public class Poupador extends ProgramaPoupador {
 					break;
 				}
 				
-				for (Edge atual : grafo.grafo.get(n.coordenada)) {
-					Coordenada m = new Coordenada(atual.destino);
-					m.parent = n;
+				for (Point atual : grafo.grafo.get(aux.coordenada)) {
+					Coordenada m = new Coordenada(atual);
+					m.parent = aux;
 							
-					if (!openList.stream().anyMatch(x -> x.coordenada.equals(m.coordenada)) &&
-						!closedList.stream().anyMatch(x -> x.coordenada.equals(m.coordenada))) {
-						openList.add(m);
-					} else {
-						
-						if (closedList.stream().anyMatch(x -> x.coordenada.equals(m.coordenada))) {
-							closedList.removeIf(x -> x.coordenada.equals(m.coordenada));
-							openList.add(m);
-						}
+					if (!visitadosGrafo.contains(m.coordenada)) {
+						visitadosGrafo.add(m.coordenada);
+						queue.add(m);
 					}
 				}
-//				closedList.removeIf(x -> x.coordenada.equals(n.coordenada));
-				closedList.add(n);
-				openList.removeIf(x -> x.coordenada.equals(n.coordenada));
+
 			}
 			if (!movimentos.isEmpty()) {
 				int x = posicaoAtual.x;
@@ -686,9 +693,9 @@ public class Poupador extends ProgramaPoupador {
 //		}
 //		System.out.println();
 //		System.out.println(Constantes.posicaoBanco);
-//		for (int i = 0; i < 30; i++) {
-//			for (int j = 0; j < 30; j++) {
-//				System.out.print(memoria[i][j] + " ");
+//		for (int i = 0; i < 31; i++) {
+//			for (int j = 0; j < 31; j++) {
+//				System.out.print(this.visitados[i][j] + " ");
 //			}
 //			System.out.println();
 //		}
