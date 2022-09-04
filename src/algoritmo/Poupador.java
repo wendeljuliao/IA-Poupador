@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
@@ -204,7 +205,7 @@ public class Poupador extends ProgramaPoupador {
 	
 	private int movimentoAleatorio(ArrayList<Integer> opcoes) {
 		if (opcoes.size() <= 0) {
-//			System.out.println("Sem Opção");
+//			System.out.println("Sem Opï¿½ï¿½o");
 			return new Random().nextInt(4) + 1;
 		}
 		int random = new Random().nextInt(opcoes.size());
@@ -352,49 +353,98 @@ public class Poupador extends ProgramaPoupador {
 	}
 	
 	private int verificarLadrao(int[] arr) {
-		ArrayList<Integer> aux = new ArrayList<>();
+		HashSet<Integer> aux = new HashSet<>();
+		
 		for (int i = 0; i < arr.length; i++) {
 			if (this.visao_agente[arr[i]] == 200 || this.visao_agente[arr[i]] == 210 || this.visao_agente[arr[i]] == 220 || this.visao_agente[arr[i]] == 230) {
-//				System.out.println("Correr do ladrão");
+//				System.out.println("Correr do ladrï¿½o");
 				if (contem(DIRECAO_NORTE, arr[i])) {
 //					aux.addAll(Arrays.asList( SUL, LESTE, OESTE ));
-					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, LESTE, OESTE )));
+					aux.add(NORTE);
+					//return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, LESTE, OESTE )));
 				} else if (contem(DIRECAO_SUL, arr[i])) {
 //					aux.addAll(Arrays.asList( NORTE, LESTE, OESTE ));
-					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, LESTE, OESTE )));
+					aux.add(SUL);
+					//return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, LESTE, OESTE )));
 				} else if (contem(DIRECAO_LESTE, arr[i])) {
 //					aux.addAll(Arrays.asList( OESTE, NORTE, SUL ));
-					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( OESTE, NORTE, SUL )));
+					aux.add(LESTE);
+					//return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( OESTE, NORTE, SUL )));
 				} else if (contem(DIRECAO_OESTE, arr[i])) {
 //					aux.addAll(Arrays.asList( OESTE, NORTE, SUL ));
-					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( LESTE, NORTE, SUL )));
+					aux.add(OESTE);
+					//return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( LESTE, NORTE, SUL )));
 				} else if (contem(DIRECAO_NORDESTE, arr[i])) {
 //					aux.addAll(Arrays.asList( SUL, OESTE ));
-					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, OESTE )));
+					aux.add(NORTE);
+					aux.add(LESTE);
+					//return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, OESTE )));
 				} else if (contem(DIRECAO_NOROESTE, arr[i])) {
 //					aux.addAll(Arrays.asList( SUL, LESTE ));
-					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, LESTE )));
+					aux.add(NORTE);
+					aux.add(OESTE);
+					//return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( SUL, LESTE )));
 				} else if (contem(DIRECAO_SUDESTE, arr[i])) {
 //					aux.addAll(Arrays.asList( NORTE, OESTE ));
-					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, OESTE )));
+					aux.add(SUL);
+					aux.add(LESTE);
+					//return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, OESTE )));
 				} else if (contem(DIRECAO_SUDOESTE, arr[i])) {
 //					aux.addAll(Arrays.asList( NORTE, LESTE ));
-					return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, LESTE )));
+					aux.add(SUL);
+					aux.add(OESTE);
+					//return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList( NORTE, LESTE )));
 				}	
 			}
 		}
+		HashSet<Integer> todos = new HashSet<Integer>();
+		todos.add(NORTE);
+		todos.add(LESTE);
+		todos.add(SUL);
+		todos.add(OESTE);		
 		
-		return -1;
+		Integer[] transform = aux.toArray(new Integer[aux.size()]);		
+		for(int i =0 ; i < transform.length; i++) {
+			if(todos.contains(transform[i])) {
+				todos.remove(transform[i]);
+			}
+		}
+		System.out.print(todos.size());
+		Integer[] transformadoPossiveisCaminhos = todos.toArray(new Integer[aux.size()]);
+		if(todos.size() != 4 &&  todos.size() > 1 ) {
+			return movimentoAleatorio(new ArrayList<Integer>(Arrays.asList(transformadoPossiveisCaminhos)));
+		}
+		System.out.println("voltando -1");
+		 return -1;
+		
+		
 	}
 	
 	
+	private ArrayList<Integer> qtdLadraoNaVisao(int[] arr) {
+		ArrayList<Integer> ladr = new ArrayList<Integer>();
+		
+		
+		for(int i = 0; i < arr.length; i++) {
+			if(this.visao_agente[arr[i]] == 200 || this.visao_agente[arr[i]] == 210 || this.visao_agente[arr[i]] == 220 || this.visao_agente[arr[i]] == 230){
+				ladr.add(i);
+			}
+		}
+		return ladr;
+		
+	}
+	
 	private int fugirLadrao() {
+		
+		ArrayList<Integer> qtdLadrao = qtdLadraoNaVisao(DISTANCIA_UM);
 		
 		int verificar_distUm = verificarLadrao(DISTANCIA_UM);
 		
 		if (verificar_distUm != -1) {
 			return verificar_distUm;
 		}
+		
+		
 		
 		int verificar_distDois = verificarLadrao(DISTANCIA_DOIS);
 		
@@ -407,6 +457,8 @@ public class Poupador extends ProgramaPoupador {
 		if (verificar_distTres != -1) {
 			return verificar_distTres;
 		}
+		
+	
 		
 		int verificar_distQuatro = verificarLadrao(DISTANCIA_QUATRO);
 		
@@ -536,6 +588,12 @@ public class Poupador extends ProgramaPoupador {
 		}
 		
 		return -1;
+	}
+	
+	
+	private int encurralado() {
+	
+		return 0;
 	}
 	
 	private int pensarMovimento() {
