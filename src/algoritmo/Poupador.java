@@ -308,8 +308,7 @@ public class Poupador extends ProgramaPoupador {
 		HashSet<Integer> aux = new HashSet<>();
 
 		for (int i = 0; i < arr.length; i++) {
-			if (this.visao_agente[arr[i]] == 200 || this.visao_agente[arr[i]] == 210 || this.visao_agente[arr[i]] == 220
-					|| this.visao_agente[arr[i]] == 230) {
+			if (this.visao_agente[arr[i]] == 200 || this.visao_agente[arr[i]] == 210 || this.visao_agente[arr[i]] == 220 || this.visao_agente[arr[i]] == 230) {
 //				System.out.println("Correr do ladr�o");
 				if (contem(DIRECAO_NORTE, arr[i])) {
 //					aux.addAll(Arrays.asList( SUL, LESTE, OESTE ));
@@ -606,10 +605,16 @@ public class Poupador extends ProgramaPoupador {
 
 		return -1;
 	}
-
 	private int encurralado() {
 
 		return 0;
+	}
+
+	private boolean Medo() {
+		double fear = Math.pow(1.2, this.sensor.getNumeroDeMoedas());
+		Random r = new Random();
+		int randomInt = r.nextInt(100) + 1;
+		return (randomInt < fear);
 	}
 
 	private int pensarMovimento() {
