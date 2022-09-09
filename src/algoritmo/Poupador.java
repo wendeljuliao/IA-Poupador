@@ -171,15 +171,16 @@ public class Poupador extends ProgramaPoupador {
 	double[] pesoLadoFuga = new double[5];
 	double[] pesoMoedas = new double[5];
 	double[] pesoConhecerMapa = new double[5];
+	double[] pesoIrAoBanco = new double[5];
 	double[] pesoLadoOlfatoLadrao = new double[5];
 	double[] pesoLadoOlfatoPoupador = new double[5];
 
 	double[] probEscolhaLado = new double[5];
 
-	final double PARAMETRO_LADRAO = 1000;
-	final double PARAMETRO_MOEDA = 100;
-	final double PARAMETRO_IR_BANCO = 50;
-	final double PARAMETRO_ESPACO_VAZIO = 4;
+	final double PARAMETRO_LADRAO = 2000;
+	final double PARAMETRO_MOEDA = 50;
+	final double PARAMETRO_IR_BANCO = 10;
+	final double PARAMETRO_ESPACO_VAZIO = 10;
 
 	void atualizarVariaveis() {
 		this.num_moedas = this.sensor.getNumeroDeMoedas();
@@ -194,6 +195,7 @@ public class Poupador extends ProgramaPoupador {
 			pesoLadoFuga[i] = 0;
 			pesoMoedas[i] = 0;
 			pesoConhecerMapa[i] = 0;
+			pesoIrAoBanco[i] = 0;
 
 			probEscolhaLado[i] = 1;
 		}
@@ -389,7 +391,7 @@ public class Poupador extends ProgramaPoupador {
 		for (int i = 0; i < direcoes.length; i++) {
 			if (direcoes[i] == menor) {
 				indicesMenores.add(i);
-				pesoConhecerMapa[i + 1] = Math.pow(PARAMETRO_ESPACO_VAZIO, 4);
+				pesoConhecerMapa[i + 1] = Math.pow(PARAMETRO_ESPACO_VAZIO, 2);
 			} else if (direcoes[i] != -1) {
 				pesoConhecerMapa[i + 1] = Math.pow(PARAMETRO_ESPACO_VAZIO, 1);
 			}
@@ -545,7 +547,7 @@ public class Poupador extends ProgramaPoupador {
 			indiceAux = ladrao_distDois.get(i);
 			if (probEscolhaLado[indiceAux] != 0) {
 
-				pesoIrLado = Math.pow(PARAMETRO_LADRAO, auxNumMoedas);
+				pesoIrLado = Math.pow(PARAMETRO_LADRAO * 2, auxNumMoedas) * -1;
 
 				auxPesosLadroes[indiceAux] = pesoIrLado + auxPesosLadroes[indiceAux];
 
@@ -556,7 +558,7 @@ public class Poupador extends ProgramaPoupador {
 			indiceAux = ladrao_distTres.get(i);
 			if (probEscolhaLado[indiceAux] != 0) {
 
-				pesoIrLado = Math.pow(PARAMETRO_LADRAO / 2, auxNumMoedas);
+				pesoIrLado = Math.pow(PARAMETRO_LADRAO * 1.5, auxNumMoedas) * -1;
 
 				auxPesosLadroes[indiceAux] = pesoIrLado + auxPesosLadroes[indiceAux];
 
@@ -567,7 +569,7 @@ public class Poupador extends ProgramaPoupador {
 			indiceAux = ladrao_distQuatro.get(i);
 			if (probEscolhaLado[indiceAux] != 0) {
 
-				pesoIrLado = Math.pow(PARAMETRO_LADRAO / 3, auxNumMoedas);
+				pesoIrLado = Math.pow(PARAMETRO_LADRAO, auxNumMoedas) * -1;
 
 				auxPesosLadroes[indiceAux] = pesoIrLado + auxPesosLadroes[indiceAux];
 
@@ -622,6 +624,8 @@ public class Poupador extends ProgramaPoupador {
 	}
 
 	public void calcularPegarMoedas() {
+		if (grafo.temBanco()) {
+			
 		ArrayList<Integer> moedas_distUm = moedasNaVisao(DISTANCIA_UM);
 		ArrayList<Integer> moedas_distDois = moedasNaVisao(DISTANCIA_DOIS);
 		ArrayList<Integer> moedas_distTres = moedasNaVisao(DISTANCIA_TRES);
@@ -663,6 +667,7 @@ public class Poupador extends ProgramaPoupador {
 		for (int i = 0; i < auxPesosMoedas.length; i++) {
 			this.pesoMoedas[i] = auxPesosMoedas[i];
 		}
+	}
 
 	}
 
@@ -1019,6 +1024,96 @@ public class Poupador extends ProgramaPoupador {
 
 		return -1;
 	}
+	
+	public void calcularIrAoBanco() {
+
+		if (grafo.temBanco()) {
+			int vendoBanco = seAproximar(3);
+			
+			if (vendoBanco != -1) {
+				if (vendoBanco == 4) {
+					pesoIrAoBanco[4] = Math.pow(PARAMETRO_IR_BANCO, this.num_moedas);
+				}
+
+				if (vendoBanco == 3) {
+					pesoIrAoBanco[3] = Math.pow(PARAMETRO_IR_BANCO, this.num_moedas);
+				}
+
+				if (vendoBanco == 1) {
+					pesoIrAoBanco[1] = Math.pow(PARAMETRO_IR_BANCO, this.num_moedas);
+				}
+
+				if (vendoBanco == 2) {
+					pesoIrAoBanco[2] = Math.pow(PARAMETRO_IR_BANCO, this.num_moedas);
+				}
+				return;
+			}
+			LinkedList<Point> visitadosGrafo = new LinkedList<>();
+			LinkedList<Coordenada> queue = new LinkedList<>();
+
+			ArrayList<Point> movimentos = new ArrayList<>();
+
+			Coordenada aux;
+			Coordenada fim;
+
+			queue.add(new Coordenada(posicaoAtual));
+			visitadosGrafo.add(posicaoAtual);
+
+			while (!queue.isEmpty()) {
+				aux = queue.pop();
+
+				if (aux.coordenada.equals(Constantes.posicaoBanco)) {
+					fim = aux;
+					while (fim.parent != null) {
+						movimentos.add(fim.coordenada);
+						fim = fim.parent;
+					}
+
+					break;
+				}
+
+				for (Point atual : grafo.grafo.get(aux.coordenada)) {
+					Coordenada m = new Coordenada(atual);
+					m.parent = aux;
+
+					if (!visitadosGrafo.contains(m.coordenada)) {
+						visitadosGrafo.add(m.coordenada);
+						queue.add(m);
+					}
+				}
+
+			}
+			if (!movimentos.isEmpty()) {
+				int x = posicaoAtual.x;
+				int y = posicaoAtual.y;
+				Point movimentoSequente = movimentos.get(movimentos.size() - 1);
+				int xSeq = movimentoSequente.x;
+				int ySeq = movimentoSequente.y;
+
+//				System.out.println(xSeq + " " + ySeq);
+//				System.out.println(x + " " + y);
+
+				if (x - xSeq > 0) {
+					pesoIrAoBanco[4] = Math.pow(PARAMETRO_IR_BANCO, this.num_moedas);
+				}
+
+				if (x - xSeq < 0) {
+					pesoIrAoBanco[3] = Math.pow(PARAMETRO_IR_BANCO, this.num_moedas);
+				}
+
+				if (y - ySeq > 0) {
+					pesoIrAoBanco[1] = Math.pow(PARAMETRO_IR_BANCO, this.num_moedas);
+				}
+
+				if (y - ySeq < 0) {
+					pesoIrAoBanco[2] = Math.pow(PARAMETRO_IR_BANCO, this.num_moedas);
+				}
+
+			}
+		}
+
+		
+	}
 
 	private int distanciaManhattan(int x1, int y1, int x0, int y0) {
 		return Math.abs(x1 - x0) + Math.abs(y1 - y0);
@@ -1049,12 +1144,13 @@ public class Poupador extends ProgramaPoupador {
 
 		double[] auxPesos = { 0, 0, 0, 0, 0 };
 		double somaAuxPesos = 0;
+		double menorValorPesos = Double.MAX_VALUE;
 
 		// ladroes
 		for (int i = 0; i < QUANTIDADE_MOVIMENTOS; i++) {
 			if (this.probEscolhaLado[i] != 0) {
-				auxPesos[i] -= pesoLadoFuga[i];
-
+				auxPesos[i] += pesoLadoFuga[i];
+				
 			}
 		}
 
@@ -1071,31 +1167,22 @@ public class Poupador extends ProgramaPoupador {
 				auxPesos[i] += pesoConhecerMapa[i];
 			}
 		}
-
-//		double somaProbAux = 0;
-//		// transformando tudo na probabilidade das direções
-//		for (int i = 0; i < QUANTIDADE_MOVIMENTOS; i++) {
-//			if (this.probEscolhaLado[i] != 0) {
-//
-//				if (auxPesos[i] != 0) {
-//					if (auxPesos[i] > 0) {
-//						probAux[i] = 1 - (1 / auxPesos[i]);
-//					} else {
-//						probAux[i] = 1 / (auxPesos[i] * -1);
-//					}
-//					somaProbAux += probAux[i];
-//				}
-//
-//			}
-//		}
-		// somando todos os pesos das direções
+		
+		// ir ao banco
 		for (int i = 0; i < QUANTIDADE_MOVIMENTOS; i++) {
 			if (this.probEscolhaLado[i] != 0) {
-
-				somaAuxPesos += Math.abs(auxPesos[i]);
-
+				auxPesos[i] += pesoIrAoBanco[i];
 			}
+//			System.out.print(auxPesos[i] + " ");
 		}
+//		System.out.println();
+//		System.out.println();
+//		for (int i = 0; i < auxPesos.length; i++) {
+//			System.out.print(auxPesos[i] + " ");
+//		}
+//		System.out.println();
+//		System.out.println();
+		
 
 		// Tem paredes ou fora do ambiente
 		for (int i = 0; i < DISTANCIA_UM.length; i++) {
@@ -1104,26 +1191,41 @@ public class Poupador extends ProgramaPoupador {
 				this.probEscolhaLado[i + 1] = 0;
 			}
 		}
+		
+		// somando todos os pesos das direções
+		for (int i = 0; i < QUANTIDADE_MOVIMENTOS; i++) {
+			if (this.probEscolhaLado[i] != 0) {
+				somaAuxPesos += Math.abs(auxPesos[i]);
+				if (auxPesos[i] < menorValorPesos) {
+					menorValorPesos = pesoLadoFuga[i];
+				}
+			}
+		}
 
 		double somaProbAux = 0;
 		// transformando tudo em probabilidade
-		for (int i = 0; i < QUANTIDADE_MOVIMENTOS; i++) {
+		for (int i = 1; i < QUANTIDADE_MOVIMENTOS; i++) {
 			if (this.probEscolhaLado[i] != 0) {
-				if (auxPesos[i] >= 0) {
-					probAux[i] = (auxPesos[i] / somaAuxPesos);
-				} else {
-					probAux[i] = 1 - ((auxPesos[i] * -1) / somaAuxPesos);
-				}
+//				if (auxPesos[i] >= 0) {
+//					probAux[i] = (auxPesos[i] / somaAuxPesos);
+//				} else {
+//					probAux[i] = ((auxPesos[i] * -1) / somaAuxPesos);
+//				}
+				probAux[i] = (auxPesos[i] + menorValorPesos * -1) / somaAuxPesos;
 			}
+			System.out.print(probAux[i] + " ");
 			somaProbAux += probAux[i];
 		}
+		System.out.println();
+		System.out.println();
+
 		// formatando probs para quando tudo somado, dê 1
 		for (int i = 0; i < QUANTIDADE_MOVIMENTOS; i++) {
 			this.probEscolhaLado[i] = probAux[i] / somaProbAux;
-			System.out.print(probEscolhaLado[i] + " ");
+//			System.out.print(probEscolhaLado[i] + " ");
 		}
-		System.out.println();
-		System.out.println();
+//		System.out.println();
+//		System.out.println();
 
 //		for (int i = 0; i < QUANTIDADE_MOVIMENTOS; i++) {
 //			if (somaProbAux != 0) {
@@ -1145,6 +1247,8 @@ public class Poupador extends ProgramaPoupador {
 		double probOeste = this.probEscolhaLado[4];
 
 		double numRandomico = new Random().nextDouble();
+//		System.out.println(numRandomico);
+//		System.out.println();
 		int escolha = 0;
 
 		if (numRandomico <= probParado) {
@@ -1185,6 +1289,7 @@ public class Poupador extends ProgramaPoupador {
 		calcularFugaLadroes();
 		calcularPegarMoedas();
 		calcularExplorarMapa();
+		calcularIrAoBanco();
 		transformarEmProbabilidade();
 
 //		int comando = pensarMovimento();
