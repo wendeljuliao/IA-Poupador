@@ -168,6 +168,7 @@ public class Poupador extends ProgramaPoupador {
 	int num_imunes;
 	int[] visao_agente;
 	int[] olfato_ladrao;
+	int[] olfato_poupador;
 	int[][] visitados = new int[31][31];
 //	int[][] memoria = new int[30][30];
 //	ArrayList<Point> memoriaMoedas = new ArrayList<>();
@@ -190,12 +191,13 @@ public class Poupador extends ProgramaPoupador {
 
 	double[] probEscolhaLado = new double[5];
 
-	final double PARAMETRO_LADRAO = 200;
+	final double PARAMETRO_LADRAO = 100;
 	final double PARAMETRO_MOEDA = 20;
 	final double PARAMETRO_IR_BANCO = 10;
 	final double PARAMETRO_ESPACO_VAZIO = 10;
-	final double PARAMETRO_PASTILHA_PODER = 40;
-	final double PARAMETRO_OLFATO_LADRAO = 40;
+	final double PARAMETRO_PASTILHA_PODER = 20;
+	final double PARAMETRO_OLFATO_LADRAO = 20;
+	final double PARAMETRO_OLFATO_POUPADOR = 10;
 
 	void atualizarVariaveis() {
 		this.num_moedas = this.sensor.getNumeroDeMoedas();
@@ -204,6 +206,7 @@ public class Poupador extends ProgramaPoupador {
 		this.visitados[posicaoAtual.x][posicaoAtual.y]++;
 		this.visao_agente = this.sensor.getVisaoIdentificacao();
 		this.olfato_ladrao = this.sensor.getAmbienteOlfatoLadrao();
+		this.olfato_poupador = this.sensor.getAmbienteOlfatoPoupador();
 
 		// resetando probabilidades
 		for (int i = 0; i < QUANTIDADE_MOVIMENTOS; i++) {
@@ -213,6 +216,7 @@ public class Poupador extends ProgramaPoupador {
 			pesoIrAoBanco[i] = 0;
 			pesoPastilhaPoder[i] = 0;
 			pesoLadoOlfatoLadrao[i] = 0;
+			pesoLadoOlfatoPoupador[i] = 0;
 
 			probEscolhaLado[i] = 1;
 		}
@@ -564,7 +568,7 @@ public class Poupador extends ProgramaPoupador {
 			indiceAux = ladrao_distDois.get(i);
 			if (probEscolhaLado[indiceAux] != 0) {
 
-				pesoIrLado = Math.pow(PARAMETRO_LADRAO, auxNumMoedas) * -1;
+				pesoIrLado = Math.pow(PARAMETRO_LADRAO * 2, auxNumMoedas) * -1;
 
 				auxPesosLadroes[indiceAux] = pesoIrLado + auxPesosLadroes[indiceAux];
 
@@ -575,7 +579,7 @@ public class Poupador extends ProgramaPoupador {
 			indiceAux = ladrao_distTres.get(i);
 			if (probEscolhaLado[indiceAux] != 0) {
 
-				pesoIrLado = Math.pow(PARAMETRO_LADRAO / 1.5, auxNumMoedas) * -1;
+				pesoIrLado = Math.pow(PARAMETRO_LADRAO * 1.5, auxNumMoedas) * -1;
 
 				auxPesosLadroes[indiceAux] = pesoIrLado + auxPesosLadroes[indiceAux];
 
@@ -586,7 +590,7 @@ public class Poupador extends ProgramaPoupador {
 			indiceAux = ladrao_distQuatro.get(i);
 			if (probEscolhaLado[indiceAux] != 0) {
 
-				pesoIrLado = Math.pow(PARAMETRO_LADRAO / 2, auxNumMoedas) * -1;
+				pesoIrLado = Math.pow(PARAMETRO_LADRAO * 1, auxNumMoedas) * -1;
 
 				auxPesosLadroes[indiceAux] = pesoIrLado + auxPesosLadroes[indiceAux];
 
@@ -793,24 +797,24 @@ public class Poupador extends ProgramaPoupador {
 		return -1;
 	}
 
-	public ArrayList<Integer> olfatoNaVisao(int indice) {
+	public ArrayList<Integer> olfatoNaVisao(int[] olfato_agente, int indice) {
 		ArrayList<Integer> aux = new ArrayList<Integer>();
-		for (int i = 0; i < olfato_ladrao.length; i++) {
-			if (indice == olfato_ladrao[i] && olfato_ladrao[i] == 0) {
+		for (int i = 0; i < olfato_agente.length; i++) {
+			if (indice == olfato_agente[i] && i == 0) {
 				aux = new ArrayList<Integer>(Arrays.asList(NORTE, OESTE));
-			} else if (indice == olfato_ladrao[i] && olfato_ladrao[i] == 1) {
+			} else if (indice == olfato_agente[i] && i == 1) {
 				aux = new ArrayList<Integer>(Arrays.asList(NORTE));
-			} else if (indice == olfato_ladrao[i] && olfato_ladrao[i] == 2) {
+			} else if (indice == olfato_agente[i] && i == 2) {
 				aux = new ArrayList<Integer>(Arrays.asList(NORTE, LESTE));
-			} else if (indice == olfato_ladrao[i] && olfato_ladrao[i] == 3) {
+			} else if (indice == olfato_agente[i] && i == 3) {
 				aux = new ArrayList<Integer>(Arrays.asList(OESTE));
-			} else if (indice == olfato_ladrao[i] && olfato_ladrao[i] == 4) {
+			} else if (indice == olfato_agente[i] && i == 4) {
 				aux = new ArrayList<Integer>(Arrays.asList(LESTE));
-			} else if (indice == olfato_ladrao[i] && olfato_ladrao[i] == 5) {
+			} else if (indice == olfato_agente[i] && i == 5) {
 				aux = new ArrayList<Integer>(Arrays.asList(SUL, OESTE));
-			} else if (indice == olfato_ladrao[i] && olfato_ladrao[i] == 6) {
+			} else if (indice == olfato_agente[i] && i == 6) {
 				aux = new ArrayList<Integer>(Arrays.asList(SUL));
-			} else if (indice == olfato_ladrao[i] && olfato_ladrao[i] == 7) {
+			} else if (indice == olfato_agente[i] && i == 7) {
 				aux = new ArrayList<Integer>(Arrays.asList(SUL, LESTE));
 			}
 		}
@@ -818,11 +822,11 @@ public class Poupador extends ProgramaPoupador {
 	}
 
 	public void calcularOlfatoLadroes() {
-		ArrayList<Integer> olfatoUm = olfatoNaVisao(1);
-		ArrayList<Integer> olfatoDois = olfatoNaVisao(2);
-		ArrayList<Integer> olfatoTres = olfatoNaVisao(3);
-		ArrayList<Integer> olfatoQuatro = olfatoNaVisao(4);
-		ArrayList<Integer> olfatoCinco = olfatoNaVisao(5);
+		ArrayList<Integer> olfatoUm = olfatoNaVisao(olfato_ladrao, 1);
+		ArrayList<Integer> olfatoDois = olfatoNaVisao(olfato_ladrao, 2);
+		ArrayList<Integer> olfatoTres = olfatoNaVisao(olfato_ladrao, 3);
+		ArrayList<Integer> olfatoQuatro = olfatoNaVisao(olfato_ladrao, 4);
+		ArrayList<Integer> olfatoCinco = olfatoNaVisao(olfato_ladrao, 5);
 
 		int indiceAux;
 		int auxNumMoeda = this.num_moedas != 0 ? this.num_moedas : 1;
@@ -831,7 +835,7 @@ public class Poupador extends ProgramaPoupador {
 			for (int i = 0; i < olfatoUm.size(); i++) {
 				indiceAux = olfatoUm.get(i);
 
-				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_LADRAO, auxNumMoeda) * -1;
+				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_LADRAO * 3, auxNumMoeda) * -1;
 			}
 //			return verificarOlfato(selecionarAleatorio(olfatoUm));
 		}
@@ -839,28 +843,77 @@ public class Poupador extends ProgramaPoupador {
 			for (int i = 0; i < olfatoDois.size(); i++) {
 				indiceAux = olfatoDois.get(i);
 
-				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_LADRAO / 2, auxNumMoeda) * -1;
+				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_LADRAO * 2.5, auxNumMoeda) * -1;
 			}
 		}
 		if (!olfatoTres.isEmpty()) {
 			for (int i = 0; i < olfatoTres.size(); i++) {
 				indiceAux = olfatoTres.get(i);
 
-				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_LADRAO / 3, auxNumMoeda) * -1;
+				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_LADRAO * 2, auxNumMoeda) * -1;
 			}
 		}
 		if (!olfatoQuatro.isEmpty()) {
 			for (int i = 0; i < olfatoQuatro.size(); i++) {
 				indiceAux = olfatoQuatro.get(i);
 
-				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_LADRAO / 4, auxNumMoeda) * -1;
+				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_LADRAO * 1.5, auxNumMoeda) * -1;
 			}
 		}
 		if (!olfatoCinco.isEmpty()) {
 			for (int i = 0; i < olfatoCinco.size(); i++) {
 				indiceAux = olfatoCinco.get(i);
 
-				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_LADRAO / 5, auxNumMoeda) * -1;
+				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_LADRAO, auxNumMoeda) * -1;
+			}
+		}
+
+	}
+
+	public void calcularOlfatoPoupador() {
+		ArrayList<Integer> olfatoUm = olfatoNaVisao(olfato_poupador, 1);
+		ArrayList<Integer> olfatoDois = olfatoNaVisao(olfato_poupador, 2);
+		ArrayList<Integer> olfatoTres = olfatoNaVisao(olfato_poupador, 3);
+		ArrayList<Integer> olfatoQuatro = olfatoNaVisao(olfato_poupador, 4);
+		ArrayList<Integer> olfatoCinco = olfatoNaVisao(olfato_poupador, 5);
+
+		int indiceAux;
+		int auxNumMoeda = this.num_moedas != 0 ? this.num_moedas : 1;
+
+		if (!olfatoUm.isEmpty()) {
+			for (int i = 0; i < olfatoUm.size(); i++) {
+				indiceAux = olfatoUm.get(i);
+
+				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_POUPADOR, auxNumMoeda) * -1;
+			}
+//			return verificarOlfato(selecionarAleatorio(olfatoUm));
+		}
+		if (!olfatoDois.isEmpty()) {
+			for (int i = 0; i < olfatoDois.size(); i++) {
+				indiceAux = olfatoDois.get(i);
+
+				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_POUPADOR / 2, auxNumMoeda) * -1;
+			}
+		}
+		if (!olfatoTres.isEmpty()) {
+			for (int i = 0; i < olfatoTres.size(); i++) {
+				indiceAux = olfatoTres.get(i);
+
+				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_POUPADOR / 3, auxNumMoeda) * -1;
+			}
+		}
+		if (!olfatoQuatro.isEmpty()) {
+			for (int i = 0; i < olfatoQuatro.size(); i++) {
+				indiceAux = olfatoQuatro.get(i);
+
+				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_POUPADOR / 4, auxNumMoeda) * -1;
+			}
+		}
+		if (!olfatoCinco.isEmpty()) {
+			for (int i = 0; i < olfatoCinco.size(); i++) {
+				indiceAux = olfatoCinco.get(i);
+
+				pesoLadoOlfatoLadrao[indiceAux] = Math.pow(PARAMETRO_OLFATO_POUPADOR / 5, auxNumMoeda) * -1;
 			}
 		}
 
@@ -1046,21 +1099,21 @@ public class Poupador extends ProgramaPoupador {
 			for (int i = 0; i < pastilhaUm.size(); i++) {
 				indiceAux = pastilhaUm.get(i);
 				if (probEscolhaLado[indiceAux] != 0) {
-					pesoPastilhaPoder[indiceAux] = Math.pow(PARAMETRO_PASTILHA_PODER, this.num_moedas);
+					pesoPastilhaPoder[indiceAux] = Math.pow(PARAMETRO_PASTILHA_PODER * 2.5, this.num_moedas);
 				}
 			}
 
 			for (int i = 0; i < pastilhaDois.size(); i++) {
 				indiceAux = pastilhaDois.get(i);
 				if (probEscolhaLado[indiceAux] != 0) {
-					pesoPastilhaPoder[indiceAux] = Math.pow(PARAMETRO_PASTILHA_PODER / 2, this.num_moedas);
+					pesoPastilhaPoder[indiceAux] = Math.pow(PARAMETRO_PASTILHA_PODER * 2, this.num_moedas);
 				}
 			}
 
 			for (int i = 0; i < pastilhaTres.size(); i++) {
 				indiceAux = pastilhaTres.get(i);
 				if (probEscolhaLado[indiceAux] != 0) {
-					pesoPastilhaPoder[indiceAux] = Math.pow(PARAMETRO_PASTILHA_PODER / 3, this.num_moedas);
+					pesoPastilhaPoder[indiceAux] = Math.pow(PARAMETRO_PASTILHA_PODER * 1.5, this.num_moedas);
 
 				}
 			}
@@ -1069,7 +1122,7 @@ public class Poupador extends ProgramaPoupador {
 				indiceAux = pastilhaQuatro.get(i);
 				if (probEscolhaLado[indiceAux] != 0) {
 
-					pesoPastilhaPoder[indiceAux] = Math.pow(PARAMETRO_PASTILHA_PODER / 4, this.num_moedas);
+					pesoPastilhaPoder[indiceAux] = Math.pow(PARAMETRO_PASTILHA_PODER, this.num_moedas);
 				}
 			}
 
@@ -1349,7 +1402,15 @@ public class Poupador extends ProgramaPoupador {
 
 		double[] auxPesos = { 0, 0, 0, 0, 0 };
 		double somaAuxPesos = 0;
-		double menorValorPesos = Double.MAX_VALUE;
+		double menorValorPesos = 0;
+		
+		// Tem paredes ou fora do ambiente
+		for (int i = 0; i < DISTANCIA_UM.length; i++) {
+			if (this.visao_agente[DISTANCIA_UM[i]] == 1 || this.visao_agente[DISTANCIA_UM[i]] == -1) {
+				// +1 para ficar norte, sul, leste, oeste já que dist tem 4 de tamanho
+				this.probEscolhaLado[i + 1] = 0;
+			}
+		}
 
 		// ladroes
 		for (int i = 0; i < QUANTIDADE_MOVIMENTOS; i++) {
@@ -1379,8 +1440,7 @@ public class Poupador extends ProgramaPoupador {
 				auxPesos[i] += pesoIrAoBanco[i];
 			}
 		}
-		
-		
+
 		// peso olfato do ladrao
 		for (int i = 0; i < QUANTIDADE_MOVIMENTOS; i++) {
 			if (this.probEscolhaLado[i] != 0) {
@@ -1388,18 +1448,16 @@ public class Poupador extends ProgramaPoupador {
 			}
 		}
 
+		// peso olfato do outro poupador
+		for (int i = 0; i < QUANTIDADE_MOVIMENTOS; i++) {
+			if (this.probEscolhaLado[i] != 0) {
+				auxPesos[i] += pesoLadoOlfatoPoupador[i];
+			}
+		}
 		// pastilha do poder
 		for (int i = 0; i < QUANTIDADE_MOVIMENTOS; i++) {
 			if (this.probEscolhaLado[i] != 0) {
 				auxPesos[i] += pesoPastilhaPoder[i];
-			}
-		}
-
-		// Tem paredes ou fora do ambiente
-		for (int i = 0; i < DISTANCIA_UM.length; i++) {
-			if (this.visao_agente[DISTANCIA_UM[i]] == 1 || this.visao_agente[DISTANCIA_UM[i]] == -1) {
-				// +1 para ficar norte, sul, leste, oeste já que dist tem 4 de tamanho
-				this.probEscolhaLado[i + 1] = 0;
 			}
 		}
 
@@ -1408,13 +1466,14 @@ public class Poupador extends ProgramaPoupador {
 			if (this.probEscolhaLado[i] != 0) {
 				somaAuxPesos += Math.abs(auxPesos[i]);
 				if (auxPesos[i] < menorValorPesos) {
-					menorValorPesos = pesoLadroes[i] + pesoLadoOlfatoLadrao[i];
+					menorValorPesos = pesoLadroes[i] + pesoLadoOlfatoLadrao[i] + pesoLadoOlfatoPoupador[i];
 					if (pesoPastilhaPoder[i] < 0) {
 						menorValorPesos += pesoPastilhaPoder[i];
 					}
 				}
 			}
 		}
+		
 
 		double somaProbAux = 0;
 		// transformando tudo em probabilidade
@@ -1502,6 +1561,7 @@ public class Poupador extends ProgramaPoupador {
 //		System.out.println("\n");
 		calcularFugaLadroes();
 		calcularOlfatoLadroes();
+		calcularOlfatoPoupador();
 		calcularPegarMoedas();
 		calcularExplorarMapa();
 		calcularIrAoBanco();
