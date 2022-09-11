@@ -38,7 +38,7 @@ public class Poupador extends ProgramaPoupador {
 			}
 
 			if (!hasEdge(destino, origem)) {
-				grafo.get(origem).add(destino);
+				grafo.get(destino).add(origem);
 			}
 
 //			if (!hasEdge(destino, origem)) {
@@ -166,14 +166,14 @@ public class Poupador extends ProgramaPoupador {
 
 	double[] probEscolhaLado = new double[5];
 
-	final double PARAMETRO_LADRAO = 100;
-	final double PARAMETRO_POUPADOR = 15;
-	final double PARAMETRO_MOEDA = 20;
-	final double PARAMETRO_IR_BANCO = 10;
-	final double PARAMETRO_ESPACO_VAZIO = 10;
-	final double PARAMETRO_PASTILHA_PODER = 20;
-	final double PARAMETRO_OLFATO_LADRAO = 20;
-	final double PARAMETRO_OLFATO_POUPADOR = 10;
+	final double PARAMETRO_LADRAO = 1500;
+	final double PARAMETRO_POUPADOR = 300;
+	final double PARAMETRO_MOEDA = 150;
+	final double PARAMETRO_IR_BANCO = 800;
+	final double PARAMETRO_ESPACO_VAZIO = 100;
+	final double PARAMETRO_PASTILHA_PODER = 200;
+	final double PARAMETRO_OLFATO_LADRAO = 400;
+	final double PARAMETRO_OLFATO_POUPADOR = 250;
 
 	void atualizarVariaveis() {
 		this.num_moedas = this.sensor.getNumeroDeMoedas();
@@ -968,7 +968,7 @@ public class Poupador extends ProgramaPoupador {
 			for (int i = 0; i < pastilhaUm.size(); i++) {
 				indiceAux = pastilhaUm.get(i);
 				if (probEscolhaLado[indiceAux] != 0) {
-					pesoPastilhaPoder[indiceAux] = Math.pow(PARAMETRO_PASTILHA_PODER * 2.5, this.num_moedas);
+					pesoPastilhaPoder[indiceAux] = Math.pow(PARAMETRO_PASTILHA_PODER * 10, this.num_moedas);
 				}
 			}
 
