@@ -469,3 +469,4 @@ public class Ladrao extends ProgramaLadrao {
 	}
 
 }
+
